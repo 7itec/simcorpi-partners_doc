@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home | CICM Partners API — Documentação</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1>🔌 CICM Partners API</h1>
+            <p>Documentação das Integrações para Parceiros — Pontualidade &amp; BI</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="nav">
+            <h2>📚 Documentação</h2>
+            <div class="nav-grid">
+                <a href="index.html" class="nav-card">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-title">Home</span>
+                </a>
+                <a href="docs/autenticacao.html" class="nav-card">
+                    <span class="nav-icon">🔐</span>
+                    <span class="nav-title">Autenticação</span>
+                </a>
+                <a href="docs/csat-promptness.html" class="nav-card">
+                    <span class="nav-icon">⭐</span>
+                    <span class="nav-title">CSAT / Satisfação</span>
+                </a>
+                <a href="docs/jobs-promptness.html" class="nav-card">
+                    <span class="nav-icon">🕐</span>
+                    <span class="nav-title">Atendimentos / Pontualidade</span>
+                </a>
+                <a href="docs/vehicles-bi.html" class="nav-card">
+                    <span class="nav-icon">🚗</span>
+                    <span class="nav-title">Frota BI</span>
+                </a>
+                <a href="docs/jobs-details-json.html" class="nav-card">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-title">Detalhes do atendimento</span>
+                </a>
+            </div>
+        </div>
+
+        <main class="content">
+            <h1>Integrações para Parceiros</h1>
+
+            <p>
+                Esta documentação descreve as <strong>quatro rotas de integração para parceiros externos</strong>,
+                todas autenticadas por <code>x-api-key</code>, cobrindo pontualidade, satisfação, frota e
+                detalhamento completo de atendimentos em JSON.
+            </p>
+
+            <h2>🗺️ As Integrações Disponíveis</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Rota</th>
+                        <th>Auth</th>
+                        <th>Para que serve</th>
+                        <th>Paginação</th>
+                        <th>Cache</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td><a href="docs/csat-promptness.html"><code>GET /csats/promptness</code></a></td>
+                        <td><code>x-api-key</code></td>
+                        <td>Avaliações de satisfação (CSAT) por data de início do atendimento</td>
+                        <td>Offset (page/limit)</td>
+                        <td>5 min</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><a href="docs/jobs-promptness.html"><code>GET /jobs/partners/promptness</code></a></td>
+                        <td><code>x-api-key</code></td>
+                        <td>Pontualidade de atendimentos — planejado vs realizado, status, origem/destino</td>
+                        <td>Offset (page/limit)</td>
+                        <td>5 min</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td><a href="docs/vehicles-bi.html"><code>GET /vehicles/partners/integration/bi</code></a></td>
+                        <td><code>x-api-key</code></td>
+                        <td>Frota ativa de veículos com dados técnicos e contratuais para BI</td>
+                        <td>Cursor (_id)</td>
+                        <td>—</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td><a href="docs/jobs-details-json.html"><code>GET /jobs/partners/details/json</code></a></td>
+                        <td><code>x-api-key</code></td>
+                        <td>Detalhamento completo de um dia em JSON (85 campos por atendimento)</td>
+                        <td>Cursor (paginationToken)</td>
+                        <td>5 min</td>
+                    </tr>
+                </tbody>
+            </table>
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>🔌 CICM Partners API</h3>
+                <p>Integrações de dados para parceiros</p>
+            </div>
+            <div class="footer-section">
+                <h4>Documentação</h4>
+                <ul>
+                    <li><a href="docs/autenticacao.html">Autenticação</a></li>
+                    <li><a href="docs/csat-promptness.html">CSAT / Satisfação</a></li>
+                    <li><a href="docs/jobs-promptness.html">Atendimentos / Pontualidade</a></li>
+                    <li><a href="docs/vehicles-bi.html">Frota BI</a></li>
+                    <li><a href="docs/jobs-details-json.html">Detalhes do atendimento</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Informações</h4>
+                <p>Versão 1.0.0</p>
+                <p>Última atualização: Maio 2026</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 CICM. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <button class="scroll-to-top" id="scrollToTop" aria-label="Voltar ao topo">↑</button>
+    <script src="assets/js/main.js"></script>
+</body>
+
+</html>

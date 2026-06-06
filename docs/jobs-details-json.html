@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalhes do atendimento — Partners (JSON) | CICM Partners API</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1>🔌 CICM Partners API</h1>
+            <p>Documentação das Integrações para Parceiros — Pontualidade &amp; BI</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <span class="current">Detalhes do atendimento (JSON)</span>
+        </nav>
+
+        <div class="nav">
+            <h2>📚 Documentação</h2>
+            <div class="nav-grid">
+                <a href="../index.html" class="nav-card">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-title">Home</span>
+                </a>
+                <a href="autenticacao.html" class="nav-card">
+                    <span class="nav-icon">🔐</span>
+                    <span class="nav-title">Autenticação</span>
+                </a>
+                <a href="csat-promptness.html" class="nav-card">
+                    <span class="nav-icon">⭐</span>
+                    <span class="nav-title">CSAT / Satisfação</span>
+                </a>
+                <a href="jobs-promptness.html" class="nav-card">
+                    <span class="nav-icon">🕐</span>
+                    <span class="nav-title">Atendimentos / Pontualidade</span>
+                </a>
+                <a href="vehicles-bi.html" class="nav-card">
+                    <span class="nav-icon">🚗</span>
+                    <span class="nav-title">Frota BI</span>
+                </a>
+                <a href="jobs-details-json.html" class="nav-card">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-title">Detalhes do atendimento</span>
+                </a>
+            </div>
+        </div>
+
+        <main class="content">
+            <h1>📋 GET /jobs/partners/details/json</h1>
+
+            <p>
+                Retorna o <strong>detalhamento completo</strong> dos atendimentos de um <strong>dia específico</strong>
+                em formato JSON com paginação. O conteúdo é equivalente ao da exportação XLSX,
+                porém entregue como JSON paginado (até 100 registros por página) para consumo por parceiros
+                externos e integrações.
+            </p>
+
+            <h2>1. Endpoint</h2>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/jobs/partners/details/json</span>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Propriedade</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Autenticação</td>
+                        <td>Header <code>x-api-key: &lt;chave&gt;</code></td>
+                    </tr>
+                    <tr>
+                        <td>Paginação</td>
+                        <td>Cursor-based — até <strong>100 registros/página</strong> via <code>paginationToken</code>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Cache</td>
+                        <td><strong>5 minutos</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>2. Query Parameters</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parâmetro</th>
+                        <th>Tipo</th>
+                        <th>Obrigatório</th>
+                        <th>Regra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>date</code></td>
+                        <td>string</td>
+                        <td>Sim</td>
+                        <td>Formato <code>dd/MM/yyyy</code> (ex.: <code>27/04/2026</code>) — dia exato a consultar</td>
+                    </tr>
+                    <tr>
+                        <td><code>paginationToken</code></td>
+                        <td>string</td>
+                        <td>Não</td>
+                        <td>Token retornado pelo último item da página anterior. Omita para obter a primeira página.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>3. Shape da Resposta</h2>
+
+            <p>
+                Array de objetos. Cada objeto contém <strong>85 campos</strong> com nomes em <strong>português</strong>
+                (com acentos e snake_case), mais o campo de controle <code>paginationToken</code>. Os nomes de coluna
+                são <strong>idênticos</strong> aos cabeçalhos da exportação XLSX equivalente, o que facilita
+                comparar os dois formatos e migrar relatórios.
+            </p>
+
+            <h3>4.1 Identificação</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td><code>id_atendimento</code></td>
+                        <td>Identificador numérico do atendimento</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td><code>id_solicitação</code></td>
+                        <td>Identificador numérico da solicitação</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.2 Datas e Horários Planejados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>3</td>
+                        <td><code>data_inicio_planejada</code></td>
+                        <td><code>HH:mm</code> (UTC)</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td><code>hora_inicio_planejada</code></td>
+                        <td><code>HH:mm</code> (UTC)</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td><code>data_fim_planejada</code></td>
+                        <td><code>HH:mm</code> (UTC)</td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td><code>hora_fim_planejada</code></td>
+                        <td><code>HH:mm</code> (UTC)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.3 Datas e Horários Realizados</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>7</td>
+                        <td><code>data_inicio_realizada</code></td>
+                        <td><code>dd/MM/yyyy</code> (UTC)</td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td><code>hora_inicio_realizada</code></td>
+                        <td><code>HH:mm</code> (UTC)</td>
+                    </tr>
+                    <tr>
+                        <td>9</td>
+                        <td><code>data_fim_realizada</code></td>
+                        <td><code>dd/MM/yyyy</code> (UTC)</td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td><code>hora_fim_realizada</code></td>
+                        <td><code>HH:mm</code> (UTC)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.4 Passageiros</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>11</td>
+                        <td><code>nome_passageiros</code></td>
+                        <td>String agregada (múltiplos passageiros separados por vírgula)</td>
+                    </tr>
+                    <tr>
+                        <td>12</td>
+                        <td><code>matricula_passageiros</code></td>
+                        <td>Matrículas agregadas</td>
+                    </tr>
+                    <tr>
+                        <td>13</td>
+                        <td><code>cargo_passageiros</code></td>
+                        <td>Cargos agregados</td>
+                    </tr>
+                    <tr>
+                        <td>14</td>
+                        <td><code>gerências setorial_passageiros</code></td>
+                        <td>Gerências dos passageiros</td>
+                    </tr>
+                    <tr>
+                        <td>15</td>
+                        <td><code>telefone_passageiros</code></td>
+                        <td>Telefones agregados</td>
+                    </tr>
+                    <tr>
+                        <td>16</td>
+                        <td><code>pcd</code></td>
+                        <td>Indica se passageiro é PCD</td>
+                    </tr>
+                    <tr>
+                        <td>17</td>
+                        <td><code>alta_administração</code></td>
+                        <td>Indica se é viagem VIP</td>
+                    </tr>
+                    <tr>
+                        <td>18</td>
+                        <td><code>objetos_de_custo</code></td>
+                        <td>Centros de custo agregados</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.5 Solicitação</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>19</td>
+                        <td><code>solicitação_criado_por_nome</code></td>
+                        <td>Nome de quem criou a solicitação</td>
+                    </tr>
+                    <tr>
+                        <td>20</td>
+                        <td><code>solicitação_aprovado_por_nome</code></td>
+                        <td>Nome de quem aprovou a solicitação</td>
+                    </tr>
+                    <tr>
+                        <td>21</td>
+                        <td><code>solicitação_data_criado_em</code></td>
+                        <td><code>dd/MM/yyyy</code> em <code>America/Sao_Paulo</code></td>
+                    </tr>
+                    <tr>
+                        <td>22</td>
+                        <td><code>solicitação_hora_criado_em</code></td>
+                        <td><code>HH:mm</code> em <code>America/Sao_Paulo</code></td>
+                    </tr>
+                    <tr>
+                        <td>23</td>
+                        <td><code>solicitação_observações</code></td>
+                        <td>Observações inseridas na solicitação</td>
+                    </tr>
+                    <tr>
+                        <td>24</td>
+                        <td><code>gerências setorial_solicitante</code></td>
+                        <td>Gerências do solicitante do atendimento</td>
+                    </tr>
+                    <tr>
+                        <td>25</td>
+                        <td><code>status_solicitação</code></td>
+                        <td>Status atual da solicitação</td>
+                    </tr>
+                    <tr>
+                        <td>26</td>
+                        <td><code>tipo_de_viagem</code></td>
+                        <td>Tipo da viagem (ex: Regime Turno - Entrada, Treinamentos e Eventos, etc)</td>
+                    </tr>
+                    <tr>
+                        <td>27</td>
+                        <td><code>centro_planejamento</code></td>
+                        <td>Centro de planejamento da solicitação</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.6 Endereço de Origem</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>28</td>
+                        <td><code>endereço_origem</code></td>
+                        <td>Combinação de rua e número</td>
+                    </tr>
+                    <tr>
+                        <td>29</td>
+                        <td><code>uf_origem</code></td>
+                        <td>Sigla do estado</td>
+                    </tr>
+                    <tr>
+                        <td>30</td>
+                        <td><code>cidade_origem</code></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>31</td>
+                        <td><code>bairro_origem</code></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>32</td>
+                        <td><code>lat_origem</code></td>
+                        <td>Coordenada geográfica</td>
+                    </tr>
+                    <tr>
+                        <td>33</td>
+                        <td><code>long_origem</code></td>
+                        <td>Coordenada geográfica</td>
+                    </tr>
+                    <tr>
+                        <td>34</td>
+                        <td><code>local_origem</code></td>
+                        <td>Nome do local de origem</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.7 Endereço de Destino</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>35</td>
+                        <td><code>endereço_destino</code></td>
+                        <td>Combinação de rua e número</td>
+                    </tr>
+                    <tr>
+                        <td>36</td>
+                        <td><code>uf_destino</code></td>
+                        <td>Sigla do estado</td>
+                    </tr>
+                    <tr>
+                        <td>37</td>
+                        <td><code>cidade_destino</code></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>38</td>
+                        <td><code>bairro_destino</code></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>39</td>
+                        <td><code>lat_destino</code></td>
+                        <td>Coordenada geográfica</td>
+                    </tr>
+                    <tr>
+                        <td>40</td>
+                        <td><code>long_destino</code></td>
+                        <td>Coordenada geográfica</td>
+                    </tr>
+                    <tr>
+                        <td>41</td>
+                        <td><code>local_destino</code></td>
+                        <td>Nome do local de destino</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.8 Atendimento</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>42</td>
+                        <td><code>atendimento_criado_por_nome</code></td>
+                        <td>Nome de quem criou o atendimento</td>
+                    </tr>
+                    <tr>
+                        <td>43</td>
+                        <td><code>data_criação_atendimento</code></td>
+                        <td><code>dd/MM/yyyy</code> (UTC)</td>
+                    </tr>
+                    <tr>
+                        <td>44</td>
+                        <td><code>hora_criação_atendimento</code></td>
+                        <td><code>HH:mm</code> (UTC)</td>
+                    </tr>
+                    <tr>
+                        <td>45</td>
+                        <td><code>tipo_de_serviço</code></td>
+                        <td>Ex.: DEDICADO, TAXI, ORIGINAL, etc</td>
+                    </tr>
+                    <tr>
+                        <td>46</td>
+                        <td><code>empresa</code></td>
+                        <td>Nome do prestador de serviço</td>
+                    </tr>
+                    <tr>
+                        <td>47</td>
+                        <td><code>imovel</code></td>
+                        <td>Imóvel/unidade vinculada ao atendimento</td>
+                    </tr>
+                    <tr>
+                        <td>48</td>
+                        <td><code>observação_atendimento</code></td>
+                        <td>Observações do atendimento</td>
+                    </tr>
+                    <tr>
+                        <td>49</td>
+                        <td><code>contrato</code></td>
+                        <td>Contrato vigente no momento do atendimento</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.9 Veículo</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>50</td>
+                        <td><code>placa</code></td>
+                        <td>Placa do veículo no momento do atendimento</td>
+                    </tr>
+                    <tr>
+                        <td>51</td>
+                        <td><code>prefixo</code></td>
+                        <td>Prefixo/identificador interno do veículo</td>
+                    </tr>
+                    <tr>
+                        <td>52</td>
+                        <td><code>modelo</code></td>
+                        <td>Modelo do veículo</td>
+                    </tr>
+                    <tr>
+                        <td>53</td>
+                        <td><code>regime_mensal</code></td>
+                        <td>Regime de trabalho mensal do veículo</td>
+                    </tr>
+                    <tr>
+                        <td>54</td>
+                        <td><code>regime_diario</code></td>
+                        <td>Regime de trabalho diário do veículo</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.10 Motorista</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>55</td>
+                        <td><code>motorista</code></td>
+                        <td>Nome do motorista no momento do atendimento</td>
+                    </tr>
+                    <tr>
+                        <td>56</td>
+                        <td><code>telefone_motorista</code></td>
+                        <td>Telefone do motorista</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.11 Distâncias</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>57</td>
+                        <td><code>distancia_planejada</code></td>
+                        <td>km (convertido de metros, 2 casas decimais)</td>
+                    </tr>
+                    <tr>
+                        <td>58</td>
+                        <td><code>distancia_realizada</code></td>
+                        <td>km (convertido de metros, 2 casas decimais)</td>
+                    </tr>
+                    <tr>
+                        <td>59</td>
+                        <td><code>km_em_deslocamento</code></td>
+                        <td>km percorridos em deslocamento (a vazio)</td>
+                    </tr>
+                    <tr>
+                        <td>60</td>
+                        <td><code>km_em_atendimento</code></td>
+                        <td>km percorridos com passageiro a bordo</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.12 Táxi / Estimativas de Custo</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>61</td>
+                        <td><code>codigo_da_reserva</code></td>
+                        <td>Código da reserva de táxi</td>
+                    </tr>
+                    <tr>
+                        <td>62</td>
+                        <td><code>cotações_validas</code></td>
+                        <td>Demais cotações válidas recebidas</td>
+                    </tr>
+                    <tr>
+                        <td>63</td>
+                        <td><code>menor_cotação</code></td>
+                        <td>Detalhes da menor cotação</td>
+                    </tr>
+                    <tr>
+                        <td>64</td>
+                        <td><code>maior_cotação</code></td>
+                        <td>Detalhes da maior cotação</td>
+                    </tr>
+                    <tr>
+                        <td>65</td>
+                        <td><code>orçamento</code></td>
+                        <td>Valor orçado (cotação escolhida)</td>
+                    </tr>
+                    <tr>
+                        <td>66</td>
+                        <td><code>valor_executado</code></td>
+                        <td>Valor final cobrado após execução</td>
+                    </tr>
+                    <tr>
+                        <td>67</td>
+                        <td><code>diferença_orçado_e_realizado</code></td>
+                        <td>Diferença percentual entre orçado e executado</td>
+                    </tr>
+                    <tr>
+                        <td>68</td>
+                        <td><code>custo_pedágio</code></td>
+                        <td>Custo de pedágio incluído no atendimento</td>
+                    </tr>
+                    <tr>
+                        <td>69</td>
+                        <td><code>custo_estacionamento</code></td>
+                        <td>Custo de estacionamento incluído no atendimento</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.13 Tarifas Adicionais (Taxímetro) — B1</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>70</td>
+                        <td><code>b1_nome</code></td>
+                        <td>Nome da 1ª tarifa adicional do taxímetro</td>
+                    </tr>
+                    <tr>
+                        <td>71</td>
+                        <td><code>b1_custo_inicial</code></td>
+                        <td>Custo inicial da bandeira 1</td>
+                    </tr>
+                    <tr>
+                        <td>72</td>
+                        <td><code>b1_custo_adicional</code></td>
+                        <td>Custo adicional por km/min da bandeira 1</td>
+                    </tr>
+                    <tr>
+                        <td>73</td>
+                        <td><code>b1_custo_total</code></td>
+                        <td>Custo total da bandeira 1</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.14 Tarifas Adicionais (Taxímetro) — B2</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>74</td>
+                        <td><code>b2_nome</code></td>
+                        <td>Nome da 2ª tarifa adicional do taxímetro</td>
+                    </tr>
+                    <tr>
+                        <td>75</td>
+                        <td><code>b2_custo_inicial</code></td>
+                        <td>Custo inicial da bandeira 2</td>
+                    </tr>
+                    <tr>
+                        <td>76</td>
+                        <td><code>b2_custo_adicional</code></td>
+                        <td>Custo adicional por km/min da bandeira 2</td>
+                    </tr>
+                    <tr>
+                        <td>77</td>
+                        <td><code>b2_custo_total</code></td>
+                        <td>Custo total da bandeira 2</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.15 Ateste e Contestação</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>78</td>
+                        <td><code>atestado_por_nome</code></td>
+                        <td>Nome de quem atestou a viagem</td>
+                    </tr>
+                    <tr>
+                        <td>79</td>
+                        <td><code>viagem_contestada</code></td>
+                        <td>Identificação de quem contestou (null se não contestada)</td>
+                    </tr>
+                    <tr>
+                        <td>80</td>
+                        <td><code>comentário_contestação</code></td>
+                        <td>Motivo/comentário da contestação</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.16 Pesquisa de Satisfação (CSAT)</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>81</td>
+                        <td><code>pesquisa_de_satisfação</code></td>
+                        <td>Nota da pesquisa de satisfação (ex.: 1–5)</td>
+                    </tr>
+                    <tr>
+                        <td>82</td>
+                        <td><code>comentário_pesquisa_satisfação</code></td>
+                        <td>Comentário livre do passageiro na pesquisa</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.17 Mapa / Rotas</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>83</td>
+                        <td><code>polyline_planejada</code></td>
+                        <td>Encoded polyline da rota planejada</td>
+                    </tr>
+                    <tr>
+                        <td>84</td>
+                        <td><code>polyline_realizada</code></td>
+                        <td>Encoded polyline da rota efetivamente percorrida</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.18 Paginação</h3>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Coluna</th>
+                        <th>Formato / Observação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>85</td>
+                        <td><code>paginationToken</code></td>
+                        <td>Token opaco para buscar a próxima página. Presente em todos os registros; omita-o na última
+                            página iterada.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>4. Exemplos</h2>
+
+            <h3>5.1 Primeira página</h3>
+
+            <pre><code class="language-bash">curl -G "https://&lt;host&gt;/jobs/partners/details/json" \
+  --data-urlencode "date=27/04/2026" \
+  -H "x-api-key: SUA_API_KEY"</code></pre>
+
+            <p><strong>Resposta (200) — até 100 registros:</strong></p>
+
+            <pre><code class="language-json">[
+  {
+    "id_atendimento": 100123,
+    "id_solicitação": 8842,
+    "data_inicio_planejada": "27/04/2026",
+    "hora_inicio_planejada": "09:00",
+    "data_fim_planejada": "27/04/2026",
+    "hora_fim_planejada": "10:00",
+    "data_inicio_realizada": "27/04/2026",
+    "hora_inicio_realizada": "09:12",
+    "data_fim_realizada": "27/04/2026",
+    "hora_fim_realizada": "10:08",
+    "nome_passageiros": "MARIA SANTOS",
+    "matricula_passageiros": "12345",
+    "cargo_passageiros": "ANALISTA",
+    "gerências setorial_passageiros": "GERÊNCIA DE TI",
+    "telefone_passageiros": "+5522999990000",
+    "pcd": false,
+    "alta_administração": false,
+    "objetos_de_custo": "CC001, CC002",
+    "solicitação_criado_por_nome": "ANA LIMA",
+    "solicitação_aprovado_por_nome": "CARLOS SOUZA",
+    "solicitação_data_criado_em": "26/04/2026",
+    "solicitação_hora_criado_em": "17:30",
+    "solicitação_observações": "Passageiro com bagagem extra",
+    "gerências setorial_solicitante": "GERÊNCIA ADMINISTRATIVA",
+    "status_solicitação": "FINISHED",
+    "tipo_de_viagem": "IDA",
+    "centro_planejamento": "CENTRO 1",
+    "endereço_origem": "Rua A, 100",
+    "uf_origem": "RJ",
+    "cidade_origem": "Macaé",
+    "bairro_origem": "Centro",
+    "lat_origem": -22.3710,
+    "long_origem": -41.7869,
+    "local_origem": "Sede Administrativa",
+    "endereço_destino": "Rua B, 200",
+    "uf_destino": "RJ",
+    "cidade_destino": "Macaé",
+    "bairro_destino": "Imbetiba",
+    "lat_destino": -22.3801,
+    "long_destino": -41.7701,
+    "local_destino": "Terminal Portuário",
+    "atendimento_criado_por_nome": "OPERADOR X",
+    "data_criação_atendimento": "26/04/2026",
+    "hora_criação_atendimento": "18:00",
+    "tipo_de_serviço": "DEDICADO",
+    "empresa": "PRESTADOR Y",
+    "imovel": "Edificio Central",
+    "observação_atendimento": "Confirmado com motorista",
+    "contrato": "CT-2026-001",
+    "placa": "ABC1D23",
+    "prefixo": "VH-042",
+    "modelo": "HB20",
+    "regime_mensal": "PLANTAO",
+    "regime_diario": "DIURNO",
+    "motorista": "JOAO SILVA",
+    "telefone_motorista": "+5522988880000",
+    "distancia_planejada": 12.40,
+    "distancia_realizada": 12.70,
+    "km_em_deslocamento": 2.10,
+    "km_em_atendimento": 10.60,
+    "codigo_da_reserva": null,
+    "cotações_validas": null,
+    "menor_cotação": null,
+    "maior_cotação": null,
+    "orçamento": null,
+    "valor_executado": null,
+    "diferença_orçado_e_realizado": null,
+    "custo_pedágio": null,
+    "custo_estacionamento": null,
+    "b1_nome": null,
+    "b1_custo_inicial": null,
+    "b1_custo_adicional": null,
+    "b1_custo_total": null,
+    "b2_nome": null,
+    "b2_custo_inicial": null,
+    "b2_custo_adicional": null,
+    "b2_custo_total": null,
+    "atestado_por_nome": "MARIA SANTOS",
+    "viagem_contestada": null,
+    "comentário_contestação": null,
+    "pesquisa_de_satisfação": 5,
+    "comentário_pesquisa_satisfação": "Ótimo motorista, pontual!",
+    "polyline_planejada": "yvp~Cj`ggHaBcD...",
+    "polyline_realizada": "yvp~Cj`ggHaBcE...",
+    "paginationToken": "CLrnGxoGEICAgIAIGg5..."
+  }
+]</code></pre>
+
+            <h3>5.2 Próxima página (usando o token do último item)</h3>
+
+            <pre><code class="language-bash">curl -G "https://&lt;host&gt;/jobs/partners/details/json" \
+  --data-urlencode "date=27/04/2026" \
+  --data-urlencode "paginationToken=CLrnGxoGEICAgIAIGg5..." \
+  -H "x-api-key: SUA_API_KEY"</code></pre>
+
+            <h3>5.3 Erro de autenticação — <code>x-api-key</code> ausente ou inválida</h3>
+
+            <pre><code class="language-bash">GET /jobs/partners/details/json?date=27/04/2026
+# (sem header x-api-key)</code></pre>
+
+            <p><strong>Resposta (401):</strong></p>
+            <pre><code class="language-json">{ "statusCode": 401, "message": "Unauthorized" }</code></pre>
+
+            <h3>5.4 Erro de parâmetro — <code>date</code> ausente ou inválido</h3>
+
+            <p><strong>Resposta (400):</strong></p>
+            <pre><code class="language-json">{ "statusCode": 400, "message": "A data precisa estar no formato dd/mm/yyyy" }</code></pre>
+
+            <h2>5. Erros Comuns</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>HTTP</th>
+                        <th>Cenário</th>
+                        <th>Mensagem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="status s400">400</span></td>
+                        <td><code>date</code> ausente</td>
+                        <td>Mensagem do validador (<code>@IsNotEmptyPTBR</code>)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s400">400</span></td>
+                        <td><code>date</code> em formato errado</td>
+                        <td><code>A data precisa estar no formato dd/mm/yyyy</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s401">401</span></td>
+                        <td><code>x-api-key</code> ausente ou inválida</td>
+                        <td><code>Unauthorized</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s500">500</span></td>
+                        <td>Erro interno</td>
+                        <td>Mensagem variável</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>6. Cuidados Operacionais</h2>
+
+            <ul>
+                <li>
+                    <strong>Itere sempre pelo <code>paginationToken</code>:</strong> para dias com muitos atendimentos,
+                    consuma todas as páginas em sequência usando o token do último item de cada resposta. A iteração
+                    termina quando a resposta tiver menos de 100 registros.
+                </li>
+                <li>
+                    <strong>Cache de 5 minutos:</strong> chamadas repetidas dentro do mesmo janela retornam o cache.
+                    Evite iterar pelas páginas com intervalo maior que 5 minutos para garantir consistência dos dados
+                    dentro da mesma extração.
+                </li>
+                <li>
+                    <strong>Escopo por parceiro:</strong> a <code>x-api-key</code> define o recorte de dados retornado.
+                    Chaves diferentes podem retornar conjuntos distintos para o mesmo <code>date</code>.
+                </li>
+            </ul>
+
+            <div class="page-nav">
+                <a href="vehicles-bi.html">← Frota BI</a>
+                <a href="../index.html">Home →</a>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>🔌 CICM Partners API</h3>
+                <p>Integrações de dados para parceiros</p>
+            </div>
+            <div class="footer-section">
+                <h4>Documentação</h4>
+                <ul>
+                    <li><a href="autenticacao.html">Autenticação</a></li>
+                    <li><a href="csat-promptness.html">CSAT / Satisfação</a></li>
+                    <li><a href="jobs-promptness.html">Atendimentos / Pontualidade</a></li>
+                    <li><a href="vehicles-bi.html">Frota BI</a></li>
+                    <li><a href="jobs-details-json.html">Detalhes do atendimento</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Informações</h4>
+                <p>Versão 1.0.0</p>
+                <p>Última atualização: Maio 2026</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 CICM. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <button class="scroll-to-top" id="scrollToTop" aria-label="Voltar ao topo">↑</button>
+    <script src="../assets/js/main.js"></script>
+</body>
+
+</html>

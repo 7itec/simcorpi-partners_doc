@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frota BI | CICM Partners API</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1>🔌 CICM Partners API</h1>
+            <p>Documentação das Integrações para Parceiros — Pontualidade &amp; BI</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <span class="current">Frota BI</span>
+        </nav>
+
+        <div class="nav">
+            <h2>📚 Documentação</h2>
+            <div class="nav-grid">
+                <a href="../index.html" class="nav-card">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-title">Home</span>
+                </a>
+                <a href="autenticacao.html" class="nav-card">
+                    <span class="nav-icon">🔐</span>
+                    <span class="nav-title">Autenticação</span>
+                </a>
+                <a href="csat-promptness.html" class="nav-card">
+                    <span class="nav-icon">⭐</span>
+                    <span class="nav-title">CSAT / Satisfação</span>
+                </a>
+                <a href="jobs-promptness.html" class="nav-card">
+                    <span class="nav-icon">🕐</span>
+                    <span class="nav-title">Atendimentos / Pontualidade</span>
+                </a>
+                <a href="vehicles-bi.html" class="nav-card">
+                    <span class="nav-icon">🚗</span>
+                    <span class="nav-title">Frota BI</span>
+                </a>
+                <a href="jobs-details-json.html" class="nav-card">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-title">Detalhes do atendimento</span>
+                </a>
+            </div>
+        </div>
+
+        <main class="content">
+            <h1>🚗 GET /vehicles/partners/integration/bi</h1>
+
+            <p>
+                Retorna a frota de veículos <strong>ativos</strong>,
+                com todos os campos disponíveis para consumo do BI.
+            </p>
+
+            <h2>1. Endpoint</h2>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/vehicles/partners/integration/bi</span>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Propriedade</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Autenticação</td>
+                        <td>Header <code>x-api-key</code> obrigatório</td>
+                    </tr>
+                    <tr>
+                        <td>Paginação</td>
+                        <td>Cursor por <code>_id</code></td>
+                    </tr>
+                    <tr>
+                        <td>Cache</td>
+                        <td><strong>Sem cache</strong> — sempre lê do banco</td>
+                    </tr>
+                    <tr>
+                        <td>Filtro fixo</td>
+                        <td>Somente veículos com <code>status === ACTIVE</code></td>
+                    </tr>
+                    <tr>
+                        <td>Ordenação</td>
+                        <td><code>_id</code> ascendente</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>2. Query Parameters</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parâmetro</th>
+                        <th>Tipo</th>
+                        <th>Obrigatório</th>
+                        <th>Regra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>limit</code></td>
+                        <td>number</td>
+                        <td>Sim</td>
+                        <td>Inteiro entre 1 e <strong>300</strong></td>
+                    </tr>
+                    <tr>
+                        <td><code>cursor</code></td>
+                        <td>string</td>
+                        <td>Não</td>
+                        <td>Deve ser um ObjectId válido (24 hex chars)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>3. Paginação por Cursor</h2>
+
+            <p>Este é um modelo diferente das outras rotas:</p>
+
+            <ol>
+                <li><strong>Primeira chamada</strong>: envie apenas <code>limit</code>, sem <code>cursor</code>.</li>
+                <li><strong>Chamadas seguintes</strong>: envie <code>cursor = _id</code> do <strong>último item</strong>
+                    retornado.</li>
+                <li><strong>Condição de parada</strong>: quando a quantidade retornada for <strong>menor que
+                        <code>limit</code></strong>, você chegou ao fim.</li>
+            </ol>
+
+            <div class="info-card">
+                <p>
+                    <strong>Diferença importante:</strong> diferente das rotas de CSAT e Pontualidade, aqui a resposta é
+                    um
+                    <strong>array direto</strong> — não há envelope com <code>data</code>, <code>count</code> ou
+                    <code>isLastPage</code>. A condição de parada é o tamanho do array retornado.
+                </p>
+            </div>
+
+            <h2>4. Shape da Resposta</h2>
+
+            <p>Array de objetos com os seguintes campos:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Campo</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>_id</code></td>
+                        <td>string</td>
+                        <td>Identificador único do veículo — use para paginação</td>
+                    </tr>
+                    <tr>
+                        <td><code>plate</code></td>
+                        <td>string | null</td>
+                        <td>Placa do veículo</td>
+                    </tr>
+                    <tr>
+                        <td><code>model</code></td>
+                        <td>string | null</td>
+                        <td>Modelo do veículo</td>
+                    </tr>
+                    <tr>
+                        <td><code>status</code></td>
+                        <td>string</td>
+                        <td>Sempre <code>ACTIVE</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>process</code></td>
+                        <td>string | null</td>
+                        <td>Processo no qual o veículo está alocado</td>
+                    </tr>
+                    <tr>
+                        <td><code>management</code></td>
+                        <td>string | null</td>
+                        <td>Gerência responsável</td>
+                    </tr>
+                    <tr>
+                        <td><code>servicePackage</code></td>
+                        <td>string | null</td>
+                        <td>Pacote de serviço contratado</td>
+                    </tr>
+                    <tr>
+                        <td><code>requestOrigin</code></td>
+                        <td>string | null</td>
+                        <td>Origem da solicitação</td>
+                    </tr>
+                    <tr>
+                        <td><code>serviceTypes</code></td>
+                        <td>string | null</td>
+                        <td>Tipo de serviço (ex.: DEDICADO)</td>
+                    </tr>
+                    <tr>
+                        <td><code>serviceDescription</code></td>
+                        <td>boolean | null</td>
+                        <td>Indicador de descrição de serviço</td>
+                    </tr>
+                    <tr>
+                        <td><code>modal</code></td>
+                        <td>string | null</td>
+                        <td>Modal de transporte (ex.: MICRO-ONIBUS)</td>
+                    </tr>
+                    <tr>
+                        <td><code>direction</code></td>
+                        <td>string | null</td>
+                        <td>Diretoria responsável</td>
+                    </tr>
+                    <tr>
+                        <td><code>executiveManagement</code></td>
+                        <td>string | null</td>
+                        <td>Gerência executiva</td>
+                    </tr>
+                    <tr>
+                        <td><code>city</code></td>
+                        <td>string | null</td>
+                        <td>Cidade de operação</td>
+                    </tr>
+                    <tr>
+                        <td><code>state</code></td>
+                        <td>string | null</td>
+                        <td>Estado de operação</td>
+                    </tr>
+                    <tr>
+                        <td><code>contractNumber</code></td>
+                        <td>number | null</td>
+                        <td>Número do contrato</td>
+                    </tr>
+                    <tr>
+                        <td><code>equipmentCode</code></td>
+                        <td>number | null</td>
+                        <td>Código do equipamento (uso interno)</td>
+                    </tr>
+                    <tr>
+                        <td><code>dangerousness</code></td>
+                        <td>boolean | null</td>
+                        <td>Indicador de periculosidade</td>
+                    </tr>
+                    <tr>
+                        <td><code>monthlyWorkRegime</code></td>
+                        <td>string | null</td>
+                        <td>Regime mensal de trabalho</td>
+                    </tr>
+                    <tr>
+                        <td><code>dailyWorkRegime</code></td>
+                        <td>number | null</td>
+                        <td>Carga horária diária</td>
+                    </tr>
+                    <tr>
+                        <td><code>quantityOfKilometersDriven</code></td>
+                        <td>number | null</td>
+                        <td>KM rodados</td>
+                    </tr>
+                    <tr>
+                        <td><code>numberOfPassengers</code></td>
+                        <td>number | null</td>
+                        <td>Capacidade de passageiros</td>
+                    </tr>
+                    <tr>
+                        <td><code>planningGroup</code></td>
+                        <td>number | null</td>
+                        <td>Grupo de planejamento</td>
+                    </tr>
+                    <tr>
+                        <td><code>planningCenter</code></td>
+                        <td>number | null</td>
+                        <td>Centro de planejamento</td>
+                    </tr>
+                    <tr>
+                        <td><code>observations</code></td>
+                        <td>string | null</td>
+                        <td>Observações livres</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>5. Exemplos</h2>
+
+            <h3>5.1 Primeira página (sem cursor)</h3>
+
+            <pre><code class="language-bash">curl -G "https://&lt;host&gt;/vehicles/partners/integration/bi" \
+  --data-urlencode "limit=300" \
+  -H "x-api-key: $X_API_KEY"</code></pre>
+
+            <p><strong>Resposta (200):</strong></p>
+            <pre><code class="language-json">[
+  {
+    "_id": "626fa361ec49ee3fdb1602bb",
+    "plate": "PJE8F88",
+    "model": "MPOLO SENIOR",
+    "status": "ACTIVE",
+    "process": "TRANSPORTE DE PESSOAS",
+    "management": "SL-NNE",
+    "servicePackage": "COLETIVO CORPORATIVO",
+    "requestOrigin": "LT",
+    "serviceTypes": "DEDICADO",
+    "serviceDescription": true,
+    "modal": "MICRO-ONIBUS",
+    "direction": "DE&amp;P",
+    "executiveManagement": "TAR/UN-SEAL",
+    "city": "CARMOPOLIS",
+    "state": "SE",
+    "contractNumber": 4600583536,
+    "equipmentCode": 30109571,
+    "dangerousness": false,
+    "monthlyWorkRegime": "TDM",
+    "dailyWorkRegime": 12,
+    "quantityOfKilometersDriven": 4157,
+    "numberOfPassengers": 10,
+    "planningGroup": 1024,
+    "planningCenter": 1021,
+    "observations": ""
+  }
+]</code></pre>
+
+            <h3>5.2 Próxima página (com cursor)</h3>
+
+            <pre><code class="language-bash">curl -G "https://&lt;host&gt;/vehicles/partners/integration/bi" \
+  --data-urlencode "cursor=626fa361ec49ee3fdb1602bb" \
+  --data-urlencode "limit=300" \
+  -H "x-api-key: $X_API_KEY"</code></pre>
+
+
+
+            <h2>6. Erros Comuns</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>HTTP</th>
+                        <th>Cenário</th>
+                        <th>Mensagem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="status s400">400</span></td>
+                        <td><code>cursor</code> não é um ObjectId válido</td>
+                        <td><code>Cursor deve ser um ObjectId válido!</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s400">400</span></td>
+                        <td><code>limit</code> fora da faixa (1–300)</td>
+                        <td>Mensagem do validador</td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s401">401</span></td>
+                        <td>API key inválida ou ausente</td>
+                        <td><code>Chave inválida</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s401">401</span></td>
+                        <td>API key expirada</td>
+                        <td><code>Chave expirada</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s500">500</span></td>
+                        <td>Falha interna</td>
+                        <td>Mensagem variável</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="info-card">
+                <p>
+                    <strong>Atenção ao cursor:</strong> na primeira chamada, <strong>omita</strong> o parâmetro
+                    em vez de enviar string vazia. O cursor deve ser exatamente o <code>_id</code> do último item
+                    retornado — 24 caracteres hexadecimais.
+                </p>
+            </div>
+
+            <div class="page-nav">
+                <a href="jobs-promptness.html">← Atendimentos / Pontualidade</a>
+                <a href="jobs-details-json.html">Detalhes do atendimento →</a>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>🔌 CICM Partners API</h3>
+                <p>Integrações de dados para parceiros</p>
+            </div>
+            <div class="footer-section">
+                <h4>Documentação</h4>
+                <ul>
+                    <li><a href="autenticacao.html">Autenticação</a></li>
+                    <li><a href="csat-promptness.html">CSAT / Satisfação</a></li>
+                    <li><a href="jobs-promptness.html">Atendimentos / Pontualidade</a></li>
+                    <li><a href="vehicles-bi.html">Frota BI</a></li>
+                    <li><a href="jobs-details-json.html">Detalhes do atendimento</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Informações</h4>
+                <p>Versão 1.0.0</p>
+                <p>Última atualização: Abril 2026</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 CICM. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <button class="scroll-to-top" id="scrollToTop" aria-label="Voltar ao topo">↑</button>
+    <script src="../assets/js/main.js"></script>
+</body>
+
+</html>

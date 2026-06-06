@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atendimentos / Pontualidade | CICM Partners API</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1>🔌 CICM Partners API</h1>
+            <p>Documentação das Integrações para Parceiros — Pontualidade &amp; BI</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <span class="current">Atendimentos / Pontualidade</span>
+        </nav>
+
+        <div class="nav">
+            <h2>📚 Documentação</h2>
+            <div class="nav-grid">
+                <a href="../index.html" class="nav-card">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-title">Home</span>
+                </a>
+                <a href="autenticacao.html" class="nav-card">
+                    <span class="nav-icon">🔐</span>
+                    <span class="nav-title">Autenticação</span>
+                </a>
+                <a href="csat-promptness.html" class="nav-card">
+                    <span class="nav-icon">⭐</span>
+                    <span class="nav-title">CSAT / Satisfação</span>
+                </a>
+                <a href="jobs-promptness.html" class="nav-card">
+                    <span class="nav-icon">🕐</span>
+                    <span class="nav-title">Atendimentos / Pontualidade</span>
+                </a>
+                <a href="vehicles-bi.html" class="nav-card">
+                    <span class="nav-icon">🚗</span>
+                    <span class="nav-title">Frota BI</span>
+                </a>
+                <a href="jobs-details-json.html" class="nav-card">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-title">Detalhes do atendimento</span>
+                </a>
+            </div>
+        </div>
+
+        <main class="content">
+            <h1>🕐 GET /jobs/partners/promptness</h1>
+
+            <p>
+                Retorna dados de pontualidade de atendimentos: datas/horas planejadas vs realizadas,
+                origem, destino, status e campos operacionais.
+            </p>
+
+            <h2>1. Endpoint</h2>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/jobs/partners/promptness</span>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Propriedade</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Autenticação</td>
+                        <td>Header <code>x-api-key</code> obrigatório</td>
+                    </tr>
+                    <tr>
+                        <td>Paginação</td>
+                        <td>Offset (<code>page</code> / <code>limit</code>)</td>
+                    </tr>
+                    <tr>
+                        <td>Cache</td>
+                        <td>5 minutos por combinação de query + paginação</td>
+                    </tr>
+                    <tr>
+                        <td>Ordenação</td>
+                        <td><code>_id</code> ascendente</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>2. Query Parameters</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parâmetro</th>
+                        <th>Tipo</th>
+                        <th>Obrigatório</th>
+                        <th>Regra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>startDate</code></td>
+                        <td>string</td>
+                        <td>Sim</td>
+                        <td>Formato <code>dd/MM/yyyy</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>page</code></td>
+                        <td>number</td>
+                        <td>Sim</td>
+                        <td>Inteiro &gt;= 0 (começa em 0)</td>
+                    </tr>
+                    <tr>
+                        <td><code>limit</code></td>
+                        <td>number</td>
+                        <td>Sim</td>
+                        <td>Inteiro entre 1 e <strong>1 000</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>3. Paginação</h2>
+
+            <p>Idêntica à Rota 1 (offset com envelope <code>data</code> / <code>count</code> / <code>currentPage</code>
+                / <code>isLastPage</code>).</p>
+
+            <pre><code class="language-json">{
+  "data":        [ /* itens */ ],
+  "count":       45,
+  "currentPage": 0,
+  "isLastPage":  false
+}</code></pre>
+
+            <h2>4. Shape de Cada Item em <code>data</code></h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Campo</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>_id_atendimento</code></td>
+                        <td>string | null</td>
+                        <td><code>_id</code> interno do atendimento</td>
+                    </tr>
+                    <tr>
+                        <td><code>data_inicio_planejada</code></td>
+                        <td>string | null</td>
+                        <td>Data que <strong>deveria</strong> começar (<code>dd/MM/yyyy</code>)</td>
+                    </tr>
+                    <tr>
+                        <td><code>hora_inicio_planejada</code></td>
+                        <td>string | null</td>
+                        <td>Hora que <strong>deveria</strong> começar (<code>HH:mm</code>)</td>
+                    </tr>
+                    <tr>
+                        <td><code>data_inicio_realizada</code></td>
+                        <td>string | null</td>
+                        <td>Data que <strong>realmente</strong> começou</td>
+                    </tr>
+                    <tr>
+                        <td><code>hora_inicio_realizada</code></td>
+                        <td>string | null</td>
+                        <td>Hora que <strong>realmente</strong> começou</td>
+                    </tr>
+                    <tr>
+                        <td><code>data_fim_planejada</code></td>
+                        <td>string | null</td>
+                        <td>Data que <strong>deveria</strong> terminar</td>
+                    </tr>
+                    <tr>
+                        <td><code>hora_fim_planejada</code></td>
+                        <td>string | null</td>
+                        <td>Hora que <strong>deveria</strong> terminar</td>
+                    </tr>
+                    <tr>
+                        <td><code>data_fim_realizada</code></td>
+                        <td>string | null</td>
+                        <td>Data que <strong>terminou</strong> de fato</td>
+                    </tr>
+                    <tr>
+                        <td><code>hora_fim_realizada</code></td>
+                        <td>string | null</td>
+                        <td>Hora que <strong>terminou</strong> de fato</td>
+                    </tr>
+                    <tr>
+                        <td><code>origem</code></td>
+                        <td>string | null</td>
+                        <td>Endereço completo de partida</td>
+                    </tr>
+                    <tr>
+                        <td><code>cidade_origem</code></td>
+                        <td>string | null</td>
+                        <td>Cidade do ponto de partida</td>
+                    </tr>
+                    <tr>
+                        <td><code>destino</code></td>
+                        <td>string | null</td>
+                        <td>Endereço completo de chegada</td>
+                    </tr>
+                    <tr>
+                        <td><code>cidade_destino</code></td>
+                        <td>string | null</td>
+                        <td>Cidade do ponto de chegada</td>
+                    </tr>
+                    <tr>
+                        <td><code>ultimo_status</code></td>
+                        <td>string | null</td>
+                        <td>Status do atendimento (ex.: <code>FINISHED</code>, <code>CANCELED</code>)</td>
+                    </tr>
+                    <tr>
+                        <td><code>objetos_de_custo</code></td>
+                        <td>string | null</td>
+                        <td>Centros de custo separados por vírgula</td>
+                    </tr>
+                    <tr>
+                        <td><code>tipo_de_viagem</code></td>
+                        <td>string | null</td>
+                        <td>Categoria (ex.: DEDICADO)</td>
+                    </tr>
+                    <tr>
+                        <td><code>centro_de_planejamento</code></td>
+                        <td>string | null</td>
+                        <td>Centros de planejamento das solicitações associadas ao atendimentos</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="info-card">
+                <p>
+                    <strong>Formatação:</strong> datas em <code>dd/MM/yyyy</code> · horas em <code>HH:mm</code> ·
+                    campos sem valor retornam <code>null</code> · <code>objetos_de_custo</code> e
+                    <code>centro_de_planejamento</code> são strings com itens separados por vírgula.
+                </p>
+            </div>
+
+            <h2>5. Exemplos</h2>
+
+            <h3>5.1 Requisição — primeira página</h3>
+
+            <pre><code class="language-bash">curl -G "https://&lt;host&gt;/jobs/partners/promptness" \
+  --data-urlencode "startDate=27/04/2026" \
+  --data-urlencode "page=0" \
+  --data-urlencode "limit=1" \
+  -H "x-api-key: $X_API_KEY"</code></pre>
+
+            <p><strong>Resposta (200):</strong></p>
+            <pre><code class="language-json">{
+  "data": [
+    {
+      "_id_atendimento": "67a29afa8920591c75971088",
+      "data_inicio_planejada": "27/04/2026",
+      "hora_inicio_planejada": "09:00",
+      "data_inicio_realizada": "27/04/2026",
+      "hora_inicio_realizada": "09:12",
+      "data_fim_planejada": "27/04/2026",
+      "hora_fim_planejada": "10:00",
+      "data_fim_realizada": "27/04/2026",
+      "hora_fim_realizada": "10:08",
+      "origem": "Rua A, 100, Centro, Macae, RJ, 27900-000",
+      "cidade_origem": "Macae",
+      "destino": "Rua B, 200, Centro, Macae, RJ, 27901-000",
+      "cidade_destino": "Macae",
+      "ultimo_status": "FINISHED",
+      "objetos_de_custo": "CC001, CC002",
+      "tipo_de_viagem": "DEDICADO",
+      "centro_de_planejamento": "CENTRO 1, CENTRO 2"
+    }
+  ],
+  "count": 45,
+  "currentPage": 0,
+  "isLastPage": false
+}</code></pre>
+
+
+
+            <h2>6. Erros Comuns</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>HTTP</th>
+                        <th>Cenário</th>
+                        <th>Mensagem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="status s400">400</span></td>
+                        <td><code>startDate</code> ausente</td>
+                        <td><code>É necessário informar uma data para filtragem</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s400">400</span></td>
+                        <td><code>startDate</code> em formato inválido</td>
+                        <td><code>A data precisa estar no formato dd/mm/yyyy</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s400">400</span></td>
+                        <td><code>page</code> ou <code>limit</code> inválidos</td>
+                        <td>Mensagem do validador</td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s401">401</span></td>
+                        <td>API key inválida ou ausente</td>
+                        <td><code>Chave inválida</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s401">401</span></td>
+                        <td>API key expirada</td>
+                        <td><code>Chave expirada</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s500">500</span></td>
+                        <td>Erro interno</td>
+                        <td>Mensagem variável</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="page-nav">
+                <a href="csat-promptness.html">← CSAT / Satisfação</a>
+                <a href="vehicles-bi.html">Frota BI →</a>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>🔌 CICM Partners API</h3>
+                <p>Integrações de dados para parceiros</p>
+            </div>
+            <div class="footer-section">
+                <h4>Documentação</h4>
+                <ul>
+                    <li><a href="autenticacao.html">Autenticação</a></li>
+                    <li><a href="csat-promptness.html">CSAT / Satisfação</a></li>
+                    <li><a href="jobs-promptness.html">Atendimentos / Pontualidade</a></li>
+                    <li><a href="vehicles-bi.html">Frota BI</a></li>
+                    <li><a href="jobs-details-json.html">Detalhes do atendimento</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Informações</h4>
+                <p>Versão 1.0.0</p>
+                <p>Última atualização: Abril 2026</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 CICM. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <button class="scroll-to-top" id="scrollToTop" aria-label="Voltar ao topo">↑</button>
+    <script src="../assets/js/main.js"></script>
+</body>
+
+</html>

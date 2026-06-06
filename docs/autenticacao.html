@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autenticação | CICM Partners API</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1>🔌 CICM Partners API</h1>
+            <p>Documentação das Integrações para Parceiros — Pontualidade &amp; BI</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <span class="current">Autenticação</span>
+        </nav>
+
+        <div class="nav">
+            <h2>📚 Documentação</h2>
+            <div class="nav-grid">
+                <a href="../index.html" class="nav-card">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-title">Home</span>
+                </a>
+                <a href="autenticacao.html" class="nav-card">
+                    <span class="nav-icon">🔐</span>
+                    <span class="nav-title">Autenticação</span>
+                </a>
+                <a href="csat-promptness.html" class="nav-card">
+                    <span class="nav-icon">⭐</span>
+                    <span class="nav-title">CSAT / Satisfação</span>
+                </a>
+                <a href="jobs-promptness.html" class="nav-card">
+                    <span class="nav-icon">🕐</span>
+                    <span class="nav-title">Atendimentos / Pontualidade</span>
+                </a>
+                <a href="vehicles-bi.html" class="nav-card">
+                    <span class="nav-icon">🚗</span>
+                    <span class="nav-title">Frota BI</span>
+                </a>
+                <a href="jobs-details-json.html" class="nav-card">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-title">Detalhes do atendimento</span>
+                </a>
+            </div>
+        </div>
+
+        <main class="content">
+            <h1>🔐 Autenticação</h1>
+
+            <p>
+                Todas as rotas de integração exigem uma chave de acesso enviada no header
+                <code>x-api-token</code> de cada requisição.
+            </p>
+
+            <h2>1. Obtendo sua chave</h2>
+
+            <div class="info-card">
+                <p>
+                    A chave é gerada internamente pela equipe CICM e entregue diretamente ao parceiro.
+                    Entre em contato pelo canal oficial para solicitá-la.
+                </p>
+            </div>
+
+            <p>
+                Trate a chave como um segredo: não a publique em repositórios, logs ou qualquer meio não seguro.
+                Armazene-a em variável de ambiente ou cofre de credenciais.
+            </p>
+
+            <hr>
+
+            <h2>2. Usando a chave nas requisições</h2>
+
+            <p>Inclua a chave exatamente como recebida no header <code>x-api-token</code>:</p>
+
+            <pre><code class="language-bash">curl -G "https://&lt;host&gt;/csats/promptness" \
+  --data-urlencode "startDate=27/04/2026" \
+  --data-urlencode "page=0" \
+  --data-urlencode "limit=200" \
+  -H "x-api-token: $X_API_TOKEN"</code></pre>
+
+            <h2>3. Erros de autenticação</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>HTTP</th>
+                        <th>Mensagem</th>
+                        <th>O que fazer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="status s401">401</span></td>
+                        <td><code>Chave inválida</code></td>
+                        <td>Verifique se o header <code>x-api-token</code> está presente e com a chave correta</td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s401">401</span></td>
+                        <td><code>Chave expirada</code></td>
+                        <td>Solicite uma nova chave à equipe CICM</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="page-nav">
+                <a href="../index.html">← Home</a>
+                <a href="csat-promptness.html">CSAT / Satisfação →</a>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>🔌 CICM Partners API</h3>
+                <p>Integrações de dados para parceiros</p>
+            </div>
+            <div class="footer-section">
+                <h4>Documentação</h4>
+                <ul>
+                    <li><a href="autenticacao.html">Autenticação</a></li>
+                    <li><a href="csat-promptness.html">CSAT / Satisfação</a></li>
+                    <li><a href="jobs-promptness.html">Atendimentos / Pontualidade</a></li>
+                    <li><a href="vehicles-bi.html">Frota BI</a></li>
+                    <li><a href="jobs-details-json.html">Detalhes do atendimento</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Informações</h4>
+                <p>Versão 1.0.0</p>
+                <p>Última atualização: Abril 2026</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 CICM. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <button class="scroll-to-top" id="scrollToTop" aria-label="Voltar ao topo">↑</button>
+    <script src="../assets/js/main.js"></script>
+</body>
+
+</html>

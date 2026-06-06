@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSAT / Satisfação | CICM Partners API</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1>🔌 CICM Partners API</h1>
+            <p>Documentação das Integrações para Parceiros — Pontualidade &amp; BI</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav class="breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="separator">›</span>
+            <span class="current">CSAT / Pesquisa de Satisfação</span>
+        </nav>
+
+        <div class="nav">
+            <h2>📚 Documentação</h2>
+            <div class="nav-grid">
+                <a href="../index.html" class="nav-card">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-title">Home</span>
+                </a>
+                <a href="autenticacao.html" class="nav-card">
+                    <span class="nav-icon">🔐</span>
+                    <span class="nav-title">Autenticação</span>
+                </a>
+                <a href="csat-promptness.html" class="nav-card">
+                    <span class="nav-icon">⭐</span>
+                    <span class="nav-title">CSAT / Satisfação</span>
+                </a>
+                <a href="jobs-promptness.html" class="nav-card">
+                    <span class="nav-icon">🕐</span>
+                    <span class="nav-title">Atendimentos / Pontualidade</span>
+                </a>
+                <a href="vehicles-bi.html" class="nav-card">
+                    <span class="nav-icon">🚗</span>
+                    <span class="nav-title">Frota BI</span>
+                </a>
+                <a href="jobs-details-json.html" class="nav-card">
+                    <span class="nav-icon">📋</span>
+                    <span class="nav-title">Detalhamento do atendimento</span>
+                </a>
+            </div>
+        </div>
+
+        <main class="content">
+            <h1> GET /csats/promptness</h1>
+
+            <p>
+                Retorna avaliações de CSAT (pesquisas de satisfação) relacionadas a atendimentos,
+                filtradas por data de início do atendimento. Uso típico: medir qualidade percebida e satisfação
+                dos passageiros ao longo do tempo.
+            </p>
+
+            <h2>1. Endpoint</h2>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <span>/csats/promptness</span>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Propriedade</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Autenticação</td>
+                        <td>Header <code>x-api-key</code> obrigatório</td>
+                    </tr>
+                    <tr>
+                        <td>Paginação</td>
+                        <td>Offset (<code>page</code> / <code>limit</code>)</td>
+                    </tr>
+                    <tr>
+                        <td>Cache</td>
+                        <td>5 minutos por combinação de query + paginação</td>
+                    </tr>
+                    <tr>
+                        <td>Ordenação</td>
+                        <td><code>createdAt</code> ascendente</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>2. Query Parameters</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parâmetro</th>
+                        <th>Tipo</th>
+                        <th>Obrigatório</th>
+                        <th>Regra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>startDate</code></td>
+                        <td>string</td>
+                        <td>Sim</td>
+                        <td>Formato <code>dd/MM/yyyy</code> (validado por regex)</td>
+                    </tr>
+                    <tr>
+                        <td><code>page</code></td>
+                        <td>number</td>
+                        <td>Sim</td>
+                        <td>Inteiro &gt;= 0 (começa em 0)</td>
+                    </tr>
+                    <tr>
+                        <td><code>limit</code></td>
+                        <td>number</td>
+                        <td>Sim</td>
+                        <td>Inteiro entre 1 e <strong>1 000</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>3. Paginação</h2>
+
+            <p>Modelo <strong>offset</strong> com envelope paginado:</p>
+            <ul>
+                <li><code>skip = page * limit</code></li>
+                <li>Próxima página: <code>page + 1</code></li>
+                <li>Parar quando <code>isLastPage === true</code></li>
+            </ul>
+
+            <p><strong>Envelope retornado:</strong></p>
+            <pre><code class="language-json">{
+  "data":        [ /* itens */ ],
+  "count":       100,
+  "currentPage": 0,
+  "isLastPage":  false
+}</code></pre>
+
+            <div class="info-card">
+                <p>
+                    <strong>Cache:</strong> a resposta fica em cache por 5 minutos, chaveada por
+                    <code>(query + paginação)</code>. Trocar qualquer parâmetro gera uma chave de cache diferente.
+                    Mudanças no banco podem demorar até 5 minutos para refletir.
+                </p>
+            </div>
+
+            <h2>4. Shape de Cada Item em <code>data</code></h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Campo</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>id_do_atendimento</code></td>
+                        <td>string | null</td>
+                        <td><code>_id</code> interno do atendimento</td>
+                    </tr>
+                    <tr>
+                        <td><code>data_de_inicio</code></td>
+                        <td>string | null</td>
+                        <td>Data no formato <code>dd/MM/yyyy</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>motorista</code></td>
+                        <td>string | null</td>
+                        <td>Nome do motorista que conduziu</td>
+                    </tr>
+                    <tr>
+                        <td><code>passageiro</code></td>
+                        <td>string | null</td>
+                        <td>Nome do passageiro que avaliou</td>
+                    </tr>
+                    <tr>
+                        <td><code>avaliacao</code></td>
+                        <td>number | null</td>
+                        <td>Score do CSAT (escala 1 a 5)</td>
+                    </tr>
+                    <tr>
+                        <td><code>placa_do_veiculo</code></td>
+                        <td>string | null</td>
+                        <td>Placa do veículo</td>
+                    </tr>
+                    <tr>
+                        <td><code>modelo_do_veiculo</code></td>
+                        <td>string | null</td>
+                        <td>Modelo do veículo</td>
+                    </tr>
+                    <tr>
+                        <td><code>endereco_de_origem</code></td>
+                        <td>string | null</td>
+                        <td>Endereço de origem formatado</td>
+                    </tr>
+                    <tr>
+                        <td><code>endereco_de_destino</code></td>
+                        <td>string | null</td>
+                        <td>Endereço de destino formatado</td>
+                    </tr>
+                    <tr>
+                        <td><code>nome_da_empresa</code></td>
+                        <td>string | null</td>
+                        <td>Empresa associada ao atendimento</td>
+                    </tr>
+                    <tr>
+                        <td><code>tipo_de_servico</code></td>
+                        <td>string | null</td>
+                        <td>Tipo de serviço do atendimento (ex.: DEDICADO)</td>
+                    </tr>
+                    <tr>
+                        <td><code>prestador_de_servico</code></td>
+                        <td>string | null</td>
+                        <td>Empresa prestadora</td>
+                    </tr>
+                    <tr>
+                        <td><code>justificativa</code></td>
+                        <td>string | null</td>
+                        <td>Comentário escrito pelo passageiro no CSAT</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>5. Exemplos</h2>
+
+            <h3>5.1 Requisição de sucesso</h3>
+
+            <pre><code class="language-bash">curl -G "https://&lt;host&gt;/csats/promptness" \
+  --data-urlencode "startDate=27/04/2026" \
+  --data-urlencode "page=0" \
+  --data-urlencode "limit=2" \
+  -H "x-api-key: $X_API_KEY"</code></pre>
+
+            <p><strong>Resposta (200):</strong></p>
+            <pre><code class="language-json">{
+  "data": [
+    {
+      "id_do_atendimento": "67a29afa8920591c75971044",
+      "data_de_inicio": "27/04/2026",
+      "motorista": "JOAO SILVA",
+      "passageiro": "MARIA SANTOS",
+      "avaliacao": 5,
+      "placa_do_veiculo": "ABC1D23",
+      "modelo_do_veiculo": "HB20",
+      "endereco_de_origem": "Rua A, 100, Centro, Sao Paulo, SP, 01000-000",
+      "endereco_de_destino": "Rua B, 200, Centro, Sao Paulo, SP, 01001-000",
+      "nome_da_empresa": "EMPRESA X",
+      "tipo_de_servico": "DEDICADO",
+      "prestador_de_servico": "VIX LOGISTICA LTDA",
+      "justificativa": "Atendimento excelente"
+    }
+  ],
+  "count": 1,
+  "currentPage": 0,
+  "isLastPage": true
+}</code></pre>
+
+            <h2>6. Erros Comuns</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>HTTP</th>
+                        <th>Cenário</th>
+                        <th>Mensagem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="status s400">400</span></td>
+                        <td><code>startDate</code> ausente</td>
+                        <td><code>É necessário informar uma data para filtragem</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s400">400</span></td>
+                        <td><code>startDate</code> em formato errado (ex.: ISO)</td>
+                        <td><code>A data precisa estar no formato dd/mm/yyyy</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s400">400</span></td>
+                        <td><code>page</code> ou <code>limit</code> inválidos</td>
+                        <td>Mensagem do validador</td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s401">401</span></td>
+                        <td>API key inválida ou ausente</td>
+                        <td><code>Chave inválida</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s401">401</span></td>
+                        <td>API key expirada</td>
+                        <td><code>Chave expirada</code></td>
+                    </tr>
+                    <tr>
+                        <td><span class="status s500">500</span></td>
+                        <td>Erro interno do servidor</td>
+                        <td>Mensagem variável</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="page-nav">
+                <a href="autenticacao.html">← Autenticação</a>
+                <a href="jobs-promptness.html">Atendimento / Pontualidade →</a>
+            </div>
+        </main>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>🔌 CICM Partners API</h3>
+                <p>Integrações de dados para parceiros</p>
+            </div>
+            <div class="footer-section">
+                <h4>Documentação</h4>
+                <ul>
+                    <li><a href="autenticacao.html">Autenticação</a></li>
+                    <li><a href="csat-promptness.html">CSAT / Satisfação</a></li>
+                    <li><a href="jobs-promptness.html">Atendimento / Pontualidade</a></li>
+                    <li><a href="vehicles-bi.html">Frota BI</a></li>
+                    <li><a href="jobs-details-json.html">Detalhes do atendimento</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Informações</h4>
+                <p>Versão 1.0.0</p>
+                <p>Última atualização: Abril 2026</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© 2026 CICM. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <button class="scroll-to-top" id="scrollToTop" aria-label="Voltar ao topo">↑</button>
+    <script src="../assets/js/main.js"></script>
+</body>
+
+</html>
