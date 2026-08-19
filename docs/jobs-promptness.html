@@ -82,11 +82,11 @@
                     </tr>
                     <tr>
                         <td>Paginação</td>
-                        <td>Offset (<code>page</code> / <code>limit</code>)</td>
+                        <td>Cursor — até <strong>100 registros/página</strong> via <code>paginationToken</code></td>
                     </tr>
                     <tr>
                         <td>Cache</td>
-                        <td>5 minutos por combinação de query + paginação</td>
+                        <td>5 minutos por combinação de parâmetros da query</td>
                     </tr>
                     <tr>
                         <td>Ordenação</td>
@@ -111,34 +111,50 @@
                         <td><code>startDate</code></td>
                         <td>string</td>
                         <td>Sim</td>
-                        <td>Formato <code>dd/MM/yyyy</code></td>
+                        <td>Formato <code>dd/MM/yyyy</code> — retorna atendimentos com início a partir desta data</td>
                     </tr>
                     <tr>
-                        <td><code>page</code></td>
-                        <td>number</td>
-                        <td>Sim</td>
-                        <td>Inteiro &gt;= 0 (começa em 0)</td>
-                    </tr>
-                    <tr>
-                        <td><code>limit</code></td>
-                        <td>number</td>
-                        <td>Sim</td>
-                        <td>Inteiro entre 1 e <strong>1 000</strong></td>
+                        <td><code>paginationToken</code></td>
+                        <td>string</td>
+                        <td>Não</td>
+                        <td>Token retornado na resposta anterior. Omita para obter a primeira página.</td>
                     </tr>
                 </tbody>
             </table>
 
             <h2>3. Paginação</h2>
 
-            <p>Idêntica à Rota 1 (offset com envelope <code>data</code> / <code>count</code> / <code>currentPage</code>
-                / <code>isLastPage</code>).</p>
+            <p>Modelo <strong>cursor-based</strong> com envelope paginado. Cada requisição retorna até
+                <strong>100 atendimentos</strong>. Para obter a próxima página, envie o
+                <code>paginationToken</code> retornado na resposta anterior como parâmetro de query.
+            </p>
 
+            <ul>
+                <li>Primeira página: envie apenas <code>startDate</code></li>
+                <li>Próximas páginas: envie <code>startDate</code> + <code>paginationToken</code> da resposta anterior
+                </li>
+                <li>Parar quando <code>isLastPage === true</code> (ou quando <code>paginationToken</code> estiver
+                    ausente)</li>
+            </ul>
+
+            <p><strong>Envelope retornado:</strong></p>
             <pre><code class="language-json">{
-  "data":        [ /* itens */ ],
-  "count":       45,
-  "currentPage": 0,
-  "isLastPage":  false
+  "data":            [ /* até 100 itens */ ],
+  "count":           450,
+  "isLastPage":      false,
+  "paginationToken": "CLrnGxoGEICAgIAIGg5..."
 }</code></pre>
+
+            <div class="info-card">
+                <p>
+                    <strong><code>count</code>:</strong> retornado apenas na <strong>primeira página</strong>
+                    (quando <code>paginationToken</code> não é enviado). Representa o total de atendimentos
+                    que correspondem ao filtro.<br>
+                    <strong><code>paginationToken</code>:</strong> presente na raiz da resposta enquanto houver
+                    mais páginas. Diferente de <code>/jobs/partners/details/json</code>, o token <em>não</em>
+                    aparece dentro de cada item — use sempre o valor retornado no envelope.
+                </p>
+            </div>
 
             <h2>4. Shape de Cada Item em <code>data</code></h2>
 
@@ -154,7 +170,12 @@
                     <tr>
                         <td><code>_id_atendimento</code></td>
                         <td>string | null</td>
-                        <td><code>_id</code> interno do atendimento</td>
+                        <td><code>_id</code> interno do atendimento (MongoDB)</td>
+                    </tr>
+                    <tr>
+                        <td><code>id_atendimento</code></td>
+                        <td>number | null</td>
+                        <td>Identificador numérico do atendimento (<code>jobId</code>)</td>
                     </tr>
                     <tr>
                         <td><code>data_inicio_planejada</code></td>
@@ -234,7 +255,17 @@
                     <tr>
                         <td><code>centro_de_planejamento</code></td>
                         <td>string | null</td>
-                        <td>Centros de planejamento das solicitações associadas ao atendimentos</td>
+                        <td>Centros de planejamento das solicitações associadas ao atendimento</td>
+                    </tr>
+                    <tr>
+                        <td><code>placa_veiculo</code></td>
+                        <td>string | null</td>
+                        <td>Placa do veículo que realizou o atendimento</td>
+                    </tr>
+                    <tr>
+                        <td><code>modelo_veiculo</code></td>
+                        <td>string | null</td>
+                        <td>Modelo do veículo que realizou o atendimento</td>
                     </tr>
                 </tbody>
             </table>
@@ -253,8 +284,6 @@
 
             <pre><code class="language-bash">curl -G "https://&lt;host&gt;/jobs/partners/promptness" \
   --data-urlencode "startDate=27/04/2026" \
-  --data-urlencode "page=0" \
-  --data-urlencode "limit=1" \
   -H "x-api-key: $X_API_KEY"</code></pre>
 
             <p><strong>Resposta (200):</strong></p>
@@ -262,6 +291,7 @@
   "data": [
     {
       "_id_atendimento": "67a29afa8920591c75971088",
+      "id_atendimento": 100042,
       "data_inicio_planejada": "27/04/2026",
       "hora_inicio_planejada": "09:00",
       "data_inicio_realizada": "27/04/2026",
@@ -277,12 +307,34 @@
       "ultimo_status": "FINISHED",
       "objetos_de_custo": "CC001, CC002",
       "tipo_de_viagem": "DEDICADO",
-      "centro_de_planejamento": "CENTRO 1, CENTRO 2"
+      "centro_de_planejamento": "CENTRO 1, CENTRO 2",
+      "placa_veiculo": "ABC1D23",
+      "modelo_veiculo": "HB20"
     }
   ],
-  "count": 45,
-  "currentPage": 0,
-  "isLastPage": false
+  "count": 450,
+  "isLastPage": false,
+  "paginationToken": "CLrnGxoGEICAgIAIGg5..."
+}</code></pre>
+
+            <h3>5.2 Próxima página (usando o token da resposta anterior)</h3>
+
+            <pre><code class="language-bash">curl -G "https://&lt;host&gt;/jobs/partners/promptness" \
+  --data-urlencode "startDate=27/04/2026" \
+  --data-urlencode "paginationToken=CLrnGxoGEICAgIAIGg5..." \
+  -H "x-api-key: $X_API_KEY"</code></pre>
+
+            <p><strong>Resposta (200) — página intermediária:</strong></p>
+            <pre><code class="language-json">{
+  "data": [ /* até 100 itens */ ],
+  "isLastPage": false,
+  "paginationToken": "CLrnGxoGEICAgIAIGg5b..."
+}</code></pre>
+
+            <p><strong>Resposta (200) — última página:</strong></p>
+            <pre><code class="language-json">{
+  "data": [ /* itens restantes (&lt; 100) */ ],
+  "isLastPage": true
 }</code></pre>
 
 
@@ -307,11 +359,6 @@
                         <td><span class="status s400">400</span></td>
                         <td><code>startDate</code> em formato inválido</td>
                         <td><code>A data precisa estar no formato dd/mm/yyyy</code></td>
-                    </tr>
-                    <tr>
-                        <td><span class="status s400">400</span></td>
-                        <td><code>page</code> ou <code>limit</code> inválidos</td>
-                        <td>Mensagem do validador</td>
                     </tr>
                     <tr>
                         <td><span class="status s401">401</span></td>
@@ -357,7 +404,7 @@
             <div class="footer-section">
                 <h4>Informações</h4>
                 <p>Versão 1.0.0</p>
-                <p>Última atualização: Abril 2026</p>
+                <p>Última atualização: Agosto 2026</p>
             </div>
         </div>
         <div class="footer-bottom">
