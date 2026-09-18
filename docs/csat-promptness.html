@@ -83,15 +83,15 @@
                     </tr>
                     <tr>
                         <td>Paginação</td>
-                        <td>Offset (<code>page</code> / <code>limit</code>)</td>
+                        <td>Cursor — até <strong>100 registros/página</strong> via <code>paginationToken</code></td>
                     </tr>
                     <tr>
                         <td>Cache</td>
-                        <td>5 minutos por combinação de query + paginação</td>
+                        <td>5 minutos por combinação de parâmetros da query</td>
                     </tr>
                     <tr>
                         <td>Ordenação</td>
-                        <td><code>createdAt</code> ascendente</td>
+                        <td><code>_id</code> ascendente</td>
                     </tr>
                 </tbody>
             </table>
@@ -112,45 +112,51 @@
                         <td><code>startDate</code></td>
                         <td>string</td>
                         <td>Sim</td>
-                        <td>Formato <code>dd/MM/yyyy</code> (validado por regex)</td>
+                        <td>Formato <code>dd/MM/yyyy</code> (validado por regex) — CSATs com
+                            <code>job.startDate</code> a partir desta data</td>
                     </tr>
                     <tr>
-                        <td><code>page</code></td>
-                        <td>number</td>
-                        <td>Sim</td>
-                        <td>Inteiro &gt;= 0 (começa em 0)</td>
-                    </tr>
-                    <tr>
-                        <td><code>limit</code></td>
-                        <td>number</td>
-                        <td>Sim</td>
-                        <td>Inteiro entre 1 e <strong>1 000</strong></td>
+                        <td><code>paginationToken</code></td>
+                        <td>string</td>
+                        <td>Não</td>
+                        <td>Token retornado na resposta anterior. Omita para obter a primeira página.</td>
                     </tr>
                 </tbody>
             </table>
 
             <h2>3. Paginação</h2>
 
-            <p>Modelo <strong>offset</strong> com envelope paginado:</p>
+            <p>Modelo <strong>cursor-based</strong> com envelope paginado. Cada requisição retorna até
+                <strong>100 avaliações</strong>. Para obter a próxima página, envie o
+                <code>paginationToken</code> retornado na resposta anterior como parâmetro de query.
+            </p>
+
             <ul>
-                <li><code>skip = page * limit</code></li>
-                <li>Próxima página: <code>page + 1</code></li>
-                <li>Parar quando <code>isLastPage === true</code></li>
+                <li>Primeira página: envie apenas <code>startDate</code></li>
+                <li>Próximas páginas: envie <code>startDate</code> + <code>paginationToken</code> da resposta anterior
+                </li>
+                <li>Parar quando <code>isLastPage === true</code> (ou quando <code>paginationToken</code> estiver
+                    ausente)</li>
             </ul>
 
             <p><strong>Envelope retornado:</strong></p>
             <pre><code class="language-json">{
-  "data":        [ /* itens */ ],
-  "count":       100,
-  "currentPage": 0,
-  "isLastPage":  false
+  "data":            [ /* até 100 itens */ ],
+  "count":           100,
+  "isLastPage":      false,
+  "paginationToken": "CLrnGxoGEICAgIAIGg5..."
 }</code></pre>
 
             <div class="info-card">
                 <p>
-                    <strong>Cache:</strong> a resposta fica em cache por 5 minutos, chaveada por
-                    <code>(query + paginação)</code>. Trocar qualquer parâmetro gera uma chave de cache diferente.
-                    Mudanças no banco podem demorar até 5 minutos para refletir.
+                    <strong><code>count</code>:</strong> retornado apenas na <strong>primeira página</strong>
+                    (quando <code>paginationToken</code> não é enviado). Representa o total de avaliações
+                    que correspondem ao filtro.<br>
+                    <strong><code>paginationToken</code>:</strong> presente na raiz da resposta enquanto houver
+                    mais páginas. O token <em>não</em> aparece dentro de cada item — use sempre o valor do envelope.
+                    <br>
+                    <strong>Cache:</strong> a resposta fica em cache por 5 minutos, chaveada pelos parâmetros da
+                    query. Mudanças no banco podem demorar até 5 minutos para refletir.
                 </p>
             </div>
 
@@ -235,12 +241,10 @@
 
             <h2>5. Exemplos</h2>
 
-            <h3>5.1 Requisição de sucesso</h3>
+            <h3>5.1 Requisição — primeira página</h3>
 
             <pre><code class="language-bash">curl -G "https://&lt;host&gt;/csats/promptness" \
   --data-urlencode "startDate=27/04/2026" \
-  --data-urlencode "page=0" \
-  --data-urlencode "limit=2" \
   -H "x-api-key: $X_API_KEY"</code></pre>
 
             <p><strong>Resposta (200):</strong></p>
@@ -262,8 +266,21 @@
       "justificativa": "Atendimento excelente"
     }
   ],
-  "count": 1,
-  "currentPage": 0,
+  "count": 120,
+  "isLastPage": false,
+  "paginationToken": "CLrnGxoGEICAgIAIGg5..."
+}</code></pre>
+
+            <h3>5.2 Próxima página (usando o token da resposta anterior)</h3>
+
+            <pre><code class="language-bash">curl -G "https://&lt;host&gt;/csats/promptness" \
+  --data-urlencode "startDate=27/04/2026" \
+  --data-urlencode "paginationToken=CLrnGxoGEICAgIAIGg5..." \
+  -H "x-api-key: $X_API_KEY"</code></pre>
+
+            <p><strong>Resposta (200) — última página:</strong></p>
+            <pre><code class="language-json">{
+  "data": [ /* itens restantes (&lt;= 100) */ ],
   "isLastPage": true
 }</code></pre>
 
@@ -287,11 +304,6 @@
                         <td><span class="status s400">400</span></td>
                         <td><code>startDate</code> em formato errado (ex.: ISO)</td>
                         <td><code>A data precisa estar no formato dd/mm/yyyy</code></td>
-                    </tr>
-                    <tr>
-                        <td><span class="status s400">400</span></td>
-                        <td><code>page</code> ou <code>limit</code> inválidos</td>
-                        <td>Mensagem do validador</td>
                     </tr>
                     <tr>
                         <td><span class="status s401">401</span></td>
@@ -337,7 +349,7 @@
             <div class="footer-section">
                 <h4>Informações</h4>
                 <p>Versão 1.0.0</p>
-                <p>Última atualização: Abril 2026</p>
+                <p>Última atualização: Setembro 2026</p>
             </div>
         </div>
         <div class="footer-bottom">

@@ -59,8 +59,8 @@
             <p>
                 Retorna o <strong>detalhamento completo</strong> dos atendimentos de um <strong>dia específico</strong>
                 em formato JSON com paginação. O conteúdo é equivalente ao da exportação XLSX,
-                porém entregue como JSON paginado (até 100 registros por página) para consumo por parceiros
-                externos e integrações.
+                porém entregue como JSON paginado (até <strong>100 atendimentos</strong> por página) para consumo por
+                parceiros externos e integrações.
             </p>
 
             <h2>1. Endpoint</h2>
@@ -84,12 +84,17 @@
                     </tr>
                     <tr>
                         <td>Paginação</td>
-                        <td>Cursor-based — até <strong>100 registros/página</strong> via <code>paginationToken</code>
+                        <td>Cursor — até <strong>100 atendimentos/página</strong> via <code>paginationToken</code>
+                            no envelope
                         </td>
                     </tr>
                     <tr>
                         <td>Cache</td>
                         <td><strong>5 minutos</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Ordenação</td>
+                        <td><code>startDate</code> + <code>_id</code> ascendentes</td>
                     </tr>
                 </tbody>
             </table>
@@ -116,19 +121,59 @@
                         <td><code>paginationToken</code></td>
                         <td>string</td>
                         <td>Não</td>
-                        <td>Token retornado pelo último item da página anterior. Omita para obter a primeira página.
+                        <td>Token retornado no <strong>envelope</strong> da resposta anterior. Omita para obter a
+                            primeira página.
                         </td>
                     </tr>
                 </tbody>
             </table>
 
-            <h2>3. Shape da Resposta</h2>
+            <h2>3. Paginação</h2>
 
             <p>
-                Array de objetos. Cada objeto contém <strong>85 campos</strong> com nomes em <strong>português</strong>
-                (com acentos e snake_case), mais o campo de controle <code>paginationToken</code>. Os nomes de coluna
-                são <strong>idênticos</strong> aos cabeçalhos da exportação XLSX equivalente, o que facilita
-                comparar os dois formatos e migrar relatórios.
+                Modelo <strong>cursor-based</strong> com o mesmo envelope dos endpoints de promptness.
+                Cada requisição retorna até <strong>100 atendimentos distintos</strong>
+                (identificados por <code>_id_atendimento</code>).
+            </p>
+
+            <ul>
+                <li>Primeira página: envie apenas <code>date</code></li>
+                <li>Próximas páginas: envie <code>date</code> + <code>paginationToken</code> da resposta anterior</li>
+                <li>Parar quando <code>isLastPage === true</code> (ou quando <code>paginationToken</code> estiver
+                    ausente)</li>
+            </ul>
+
+            <p><strong>Envelope retornado:</strong></p>
+            <pre><code class="language-json">{
+  "data":            [ /* linhas dos até 100 atendimentos */ ],
+  "count":           450,
+  "isLastPage":      false,
+  "paginationToken": "CLrnGxoGEICAgIAIGg5..."
+}</code></pre>
+
+            <div class="info-card">
+                <p>
+                    <strong><code>count</code>:</strong> retornado apenas na <strong>primeira página</strong>
+                    (quando <code>paginationToken</code> não é enviado). Representa o total de atendimentos
+                    do dia filtrado.<br>
+                    <strong><code>paginationToken</code>:</strong> fica na <em>raiz</em> da resposta enquanto houver
+                    mais páginas. <strong>Não</strong> vem mais dentro de cada item de <code>data</code>.<br>
+                    <strong>Linhas vs atendimentos:</strong> um atendimento com vários passageiros (tripulação)
+                    gera <strong>mais de uma linha</strong> em <code>data</code>, todas com o mesmo
+                    <code>_id_atendimento</code>. Por isso <code>data.length</code> pode ser
+                    <strong>maior que 100</strong>, mesmo com no máximo 100 atendimentos por página.
+                    Use <code>_id_atendimento</code> (ou <code>id_atendimento</code>) para agrupar, não o tamanho
+                    do array.
+                </p>
+            </div>
+
+            <h2>4. Shape da Resposta (<code>data</code>)</h2>
+
+            <p>
+                Cada item em <code>data</code> contém os campos de negócio com nomes em <strong>português</strong>
+                (com acentos e snake_case), <strong>idênticos</strong> aos cabeçalhos da exportação XLSX equivalente,
+                mais o identificador interno <code>_id_atendimento</code>. Isso facilita comparar os dois formatos
+                e migrar relatórios.
             </p>
 
             <h3>4.1 Identificação</h3>
@@ -142,6 +187,12 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <tr>
+                        <td>—</td>
+                        <td><code>_id_atendimento</code></td>
+                        <td>Identificador interno (MongoDB) do atendimento. Use para agrupar linhas do mesmo
+                            atendimento quando houver múltiplos passageiros.</td>
+                    </tr>
                     <tr>
                         <td>1</td>
                         <td><code>id_atendimento</code></td>
@@ -789,27 +840,7 @@
                 </tbody>
             </table>
 
-            <h3>4.18 Paginação</h3>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Coluna</th>
-                        <th>Formato / Observação</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>85</td>
-                        <td><code>paginationToken</code></td>
-                        <td>Token opaco para buscar a próxima página. Presente em todos os registros; omita-o na última
-                            página iterada.</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h2>4. Exemplos</h2>
+            <h2>5. Exemplos</h2>
 
             <h3>5.1 Primeira página</h3>
 
@@ -817,104 +848,122 @@
   --data-urlencode "date=27/04/2026" \
   -H "x-api-key: SUA_API_KEY"</code></pre>
 
-            <p><strong>Resposta (200) — até 100 registros:</strong></p>
+            <p><strong>Resposta (200) — até 100 atendimentos (pode haver mais de 100 linhas em <code>data</code>):</strong></p>
 
-            <pre><code class="language-json">[
-  {
-    "id_atendimento": 100123,
-    "id_solicitação": 8842,
-    "data_inicio_planejada": "27/04/2026",
-    "hora_inicio_planejada": "09:00",
-    "data_fim_planejada": "27/04/2026",
-    "hora_fim_planejada": "10:00",
-    "data_inicio_realizada": "27/04/2026",
-    "hora_inicio_realizada": "09:12",
-    "data_fim_realizada": "27/04/2026",
-    "hora_fim_realizada": "10:08",
-    "nome_passageiros": "MARIA SANTOS",
-    "matricula_passageiros": "12345",
-    "cargo_passageiros": "ANALISTA",
-    "gerências setorial_passageiros": "GERÊNCIA DE TI",
-    "telefone_passageiros": "+5522999990000",
-    "pcd": false,
-    "alta_administração": false,
-    "objetos_de_custo": "CC001, CC002",
-    "solicitação_criado_por_nome": "ANA LIMA",
-    "solicitação_aprovado_por_nome": "CARLOS SOUZA",
-    "solicitação_data_criado_em": "26/04/2026",
-    "solicitação_hora_criado_em": "17:30",
-    "solicitação_observações": "Passageiro com bagagem extra",
-    "gerências setorial_solicitante": "GERÊNCIA ADMINISTRATIVA",
-    "status_solicitação": "FINISHED",
-    "tipo_de_viagem": "IDA",
-    "centro_planejamento": "CENTRO 1",
-    "endereço_origem": "Rua A, 100",
-    "uf_origem": "RJ",
-    "cidade_origem": "Macaé",
-    "bairro_origem": "Centro",
-    "lat_origem": -22.3710,
-    "long_origem": -41.7869,
-    "local_origem": "Sede Administrativa",
-    "endereço_destino": "Rua B, 200",
-    "uf_destino": "RJ",
-    "cidade_destino": "Macaé",
-    "bairro_destino": "Imbetiba",
-    "lat_destino": -22.3801,
-    "long_destino": -41.7701,
-    "local_destino": "Terminal Portuário",
-    "atendimento_criado_por_nome": "OPERADOR X",
-    "data_criação_atendimento": "26/04/2026",
-    "hora_criação_atendimento": "18:00",
-    "tipo_de_serviço": "DEDICADO",
-    "empresa": "PRESTADOR Y",
-    "imovel": "Edificio Central",
-    "observação_atendimento": "Confirmado com motorista",
-    "contrato": "CT-2026-001",
-    "placa": "ABC1D23",
-    "prefixo": "VH-042",
-    "modelo": "HB20",
-    "regime_mensal": "PLANTAO",
-    "regime_diario": "DIURNO",
-    "motorista": "JOAO SILVA",
-    "telefone_motorista": "+5522988880000",
-    "distancia_planejada": 12.40,
-    "distancia_realizada": 12.70,
-    "km_em_deslocamento": 2.10,
-    "km_em_atendimento": 10.60,
-    "codigo_da_reserva": null,
-    "cotações_validas": null,
-    "menor_cotação": null,
-    "maior_cotação": null,
-    "orçamento": null,
-    "valor_executado": null,
-    "diferença_orçado_e_realizado": null,
-    "custo_pedágio": null,
-    "custo_estacionamento": null,
-    "b1_nome": null,
-    "b1_custo_inicial": null,
-    "b1_custo_adicional": null,
-    "b1_custo_total": null,
-    "b2_nome": null,
-    "b2_custo_inicial": null,
-    "b2_custo_adicional": null,
-    "b2_custo_total": null,
-    "atestado_por_nome": "MARIA SANTOS",
-    "viagem_contestada": null,
-    "comentário_contestação": null,
-    "pesquisa_de_satisfação": 5,
-    "comentário_pesquisa_satisfação": "Ótimo motorista, pontual!",
-    "polyline_planejada": "yvp~Cj`ggHaBcD...",
-    "polyline_realizada": "yvp~Cj`ggHaBcE...",
-    "paginationToken": "CLrnGxoGEICAgIAIGg5..."
-  }
-]</code></pre>
+            <pre><code class="language-json">{
+  "data": [
+    {
+      "_id_atendimento": "67a29afa8920591c75971088",
+      "id_atendimento": 100123,
+      "id_solicitação": 8842,
+      "data_inicio_planejada": "27/04/2026",
+      "hora_inicio_planejada": "09:00",
+      "data_fim_planejada": "27/04/2026",
+      "hora_fim_planejada": "10:00",
+      "data_inicio_realizada": "27/04/2026",
+      "hora_inicio_realizada": "09:12",
+      "data_fim_realizada": "27/04/2026",
+      "hora_fim_realizada": "10:08",
+      "nome_passageiros": "MARIA SANTOS",
+      "matricula_passageiros": "12345",
+      "cargo_passageiros": "ANALISTA",
+      "gerências setorial_passageiros": "GERÊNCIA DE TI",
+      "telefone_passageiros": "+5522999990000",
+      "pcd": false,
+      "alta_administração": false,
+      "objetos_de_custo": "CC001, CC002",
+      "solicitação_criado_por_nome": "ANA LIMA",
+      "solicitação_aprovado_por_nome": "CARLOS SOUZA",
+      "solicitação_data_criado_em": "26/04/2026",
+      "solicitação_hora_criado_em": "17:30",
+      "solicitação_observações": "Passageiro com bagagem extra",
+      "gerências setorial_solicitante": "GERÊNCIA ADMINISTRATIVA",
+      "status_solicitação": "FINISHED",
+      "tipo_de_viagem": "IDA",
+      "centro_planejamento": "CENTRO 1",
+      "endereço_origem": "Rua A, 100",
+      "uf_origem": "RJ",
+      "cidade_origem": "Macaé",
+      "bairro_origem": "Centro",
+      "lat_origem": -22.3710,
+      "long_origem": -41.7869,
+      "local_origem": "Sede Administrativa",
+      "endereço_destino": "Rua B, 200",
+      "uf_destino": "RJ",
+      "cidade_destino": "Macaé",
+      "bairro_destino": "Imbetiba",
+      "lat_destino": -22.3801,
+      "long_destino": -41.7701,
+      "local_destino": "Terminal Portuário",
+      "atendimento_criado_por_nome": "OPERADOR X",
+      "data_criação_atendimento": "26/04/2026",
+      "hora_criação_atendimento": "18:00",
+      "tipo_de_serviço": "DEDICADO",
+      "empresa": "PRESTADOR Y",
+      "imovel": "Edificio Central",
+      "observação_atendimento": "Confirmado com motorista",
+      "contrato": "CT-2026-001",
+      "placa": "ABC1D23",
+      "prefixo": "VH-042",
+      "modelo": "HB20",
+      "regime_mensal": "PLANTAO",
+      "regime_diario": "DIURNO",
+      "motorista": "JOAO SILVA",
+      "telefone_motorista": "+5522988880000",
+      "distancia_planejada": 12.40,
+      "distancia_realizada": 12.70,
+      "km_em_deslocamento": 2.10,
+      "km_em_atendimento": 10.60,
+      "codigo_da_reserva": null,
+      "cotações_validas": null,
+      "menor_cotação": null,
+      "maior_cotação": null,
+      "orçamento": null,
+      "valor_executado": null,
+      "diferença_orçado_e_realizado": null,
+      "custo_pedágio": null,
+      "custo_estacionamento": null,
+      "b1_nome": null,
+      "b1_custo_inicial": null,
+      "b1_custo_adicional": null,
+      "b1_custo_total": null,
+      "b2_nome": null,
+      "b2_custo_inicial": null,
+      "b2_custo_adicional": null,
+      "b2_custo_total": null,
+      "atestado_por_nome": "MARIA SANTOS",
+      "viagem_contestada": null,
+      "comentário_contestação": null,
+      "pesquisa_de_satisfação": 5,
+      "comentário_pesquisa_satisfação": "Ótimo motorista, pontual!",
+      "polyline_planejada": "yvp~Cj`ggHaBcD...",
+      "polyline_realizada": "yvp~Cj`ggHaBcE..."
+    }
+  ],
+  "count": 450,
+  "isLastPage": false,
+  "paginationToken": "CLrnGxoGEICAgIAIGg5..."
+}</code></pre>
 
-            <h3>5.2 Próxima página (usando o token do último item)</h3>
+            <h3>5.2 Próxima página (usando o token do envelope)</h3>
 
             <pre><code class="language-bash">curl -G "https://&lt;host&gt;/jobs/partners/details/json" \
   --data-urlencode "date=27/04/2026" \
   --data-urlencode "paginationToken=CLrnGxoGEICAgIAIGg5..." \
   -H "x-api-key: SUA_API_KEY"</code></pre>
+
+            <p><strong>Resposta (200) — página intermediária:</strong></p>
+            <pre><code class="language-json">{
+  "data": [ /* linhas dos até 100 atendimentos */ ],
+  "isLastPage": false,
+  "paginationToken": "CLrnGxoGEICAgIAIGg5b..."
+}</code></pre>
+
+            <p><strong>Resposta (200) — última página:</strong></p>
+            <pre><code class="language-json">{
+  "data": [ /* linhas restantes */ ],
+  "isLastPage": true
+}</code></pre>
 
             <h3>5.3 Erro de autenticação — <code>x-api-key</code> ausente ou inválida</h3>
 
@@ -929,7 +978,7 @@
             <p><strong>Resposta (400):</strong></p>
             <pre><code class="language-json">{ "statusCode": 400, "message": "A data precisa estar no formato dd/mm/yyyy" }</code></pre>
 
-            <h2>5. Erros Comuns</h2>
+            <h2>6. Erros Comuns</h2>
 
             <table>
                 <thead>
@@ -963,18 +1012,24 @@
                 </tbody>
             </table>
 
-            <h2>6. Cuidados Operacionais</h2>
+            <h2>7. Cuidados Operacionais</h2>
 
             <ul>
                 <li>
-                    <strong>Itere sempre pelo <code>paginationToken</code>:</strong> para dias com muitos atendimentos,
-                    consuma todas as páginas em sequência usando o token do último item de cada resposta. A iteração
-                    termina quando a resposta tiver menos de 100 registros.
+                    <strong>Itere pelo <code>paginationToken</code> do envelope:</strong> para dias com muitos
+                    atendimentos, consuma as páginas em sequência usando o token da raiz da resposta.
+                    Pare quando <code>isLastPage === true</code> (ou quando <code>paginationToken</code> não vier).
+                    <strong>Não</strong> use <code>data.length &lt; 100</code> como critério de parada — o array
+                    pode ter mais de 100 linhas por causa de múltiplos passageiros no mesmo atendimento.
                 </li>
                 <li>
-                    <strong>Cache de 5 minutos:</strong> chamadas repetidas dentro do mesmo janela retornam o cache.
-                    Evite iterar pelas páginas com intervalo maior que 5 minutos para garantir consistência dos dados
-                    dentro da mesma extração.
+                    <strong>Agrupe por atendimento quando necessário:</strong> se a integração precisa de um registro
+                    por atendimento, agrupe as linhas de <code>data</code> por <code>_id_atendimento</code>.
+                </li>
+                <li>
+                    <strong>Cache de 5 minutos:</strong> chamadas repetidas na mesma janela retornam o cache.
+                    Evite iterar as páginas com intervalo maior que 5 minutos para manter consistência na mesma
+                    extração.
                 </li>
                 <li>
                     <strong>Escopo por parceiro:</strong> a <code>x-api-key</code> define o recorte de dados retornado.
@@ -1008,7 +1063,7 @@
             <div class="footer-section">
                 <h4>Informações</h4>
                 <p>Versão 1.0.0</p>
-                <p>Última atualização: Maio 2026</p>
+                <p>Última atualização: Setembro 2026</p>
             </div>
         </div>
         <div class="footer-bottom">
