@@ -192,7 +192,7 @@
                         <td>Nome do passageiro que avaliou</td>
                     </tr>
                     <tr>
-                        <td><code>avaliacao</code></td>
+                        <td><code>avaliação</code></td>
                         <td>number | null</td>
                         <td>Score do CSAT (escala 1 a 5)</td>
                     </tr>
@@ -227,7 +227,7 @@
                         <td>Tipo de serviço do atendimento (ex.: DEDICADO)</td>
                     </tr>
                     <tr>
-                        <td><code>prestador_de_servico</code></td>
+                        <td><code>prestador_de_serviço</code></td>
                         <td>string | null</td>
                         <td>Empresa prestadora</td>
                     </tr>
@@ -235,6 +235,18 @@
                         <td><code>justificativa</code></td>
                         <td>string | null</td>
                         <td>Comentário escrito pelo passageiro no CSAT</td>
+                    </tr>
+                    <tr>
+                        <td><code>rota_fixa</code></td>
+                        <td>boolean</td>
+                        <td>Indica se a avaliação é de um atendimento de rota fixa (<code>false</code> quando não
+                            informado)</td>
+                    </tr>
+                    <tr>
+                        <td><code>matricula</code></td>
+                        <td>number | null</td>
+                        <td>Matrícula do passageiro que avaliou. <code>null</code> quando o passageiro não possui
+                            matrícula</td>
                     </tr>
                 </tbody>
             </table>
@@ -255,15 +267,17 @@
       "data_de_inicio": "27/04/2026",
       "motorista": "JOAO SILVA",
       "passageiro": "MARIA SANTOS",
-      "avaliacao": 5,
+      "avaliação": 5,
       "placa_do_veiculo": "ABC1D23",
       "modelo_do_veiculo": "HB20",
       "endereco_de_origem": "Rua A, 100, Centro, Sao Paulo, SP, 01000-000",
       "endereco_de_destino": "Rua B, 200, Centro, Sao Paulo, SP, 01001-000",
       "nome_da_empresa": "EMPRESA X",
       "tipo_de_servico": "DEDICADO",
-      "prestador_de_servico": "VIX LOGISTICA LTDA",
-      "justificativa": "Atendimento excelente"
+      "prestador_de_serviço": "VIX LOGISTICA LTDA",
+      "justificativa": "Atendimento excelente",
+      "rota_fixa": false,
+      "matricula": 12345
     }
   ],
   "count": 120,
@@ -349,7 +363,7 @@
             <div class="footer-section">
                 <h4>Informações</h4>
                 <p>Versão 1.0.0</p>
-                <p>Última atualização: Setembro 2026</p>
+                <p>Última atualização: Outubro 2026</p>
             </div>
         </div>
         <div class="footer-bottom">

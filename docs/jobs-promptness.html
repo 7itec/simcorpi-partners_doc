@@ -268,14 +268,21 @@
                         <td>string | null</td>
                         <td>Modelo do veículo que realizou o atendimento</td>
                     </tr>
+                    <tr>
+                        <td><code>matricula</code></td>
+                        <td>string | null</td>
+                        <td>Matrículas dos passageiros (tripulação) do atendimento, sem repetição e separadas por
+                            vírgula. <code>null</code> quando nenhum passageiro possui matrícula</td>
+                    </tr>
                 </tbody>
             </table>
 
             <div class="info-card">
                 <p>
                     <strong>Formatação:</strong> datas em <code>dd/MM/yyyy</code> · horas em <code>HH:mm</code> ·
-                    campos sem valor retornam <code>null</code> · <code>objetos_de_custo</code> e
-                    <code>centro_de_planejamento</code> são strings com itens separados por vírgula.
+                    campos sem valor retornam <code>null</code> · <code>objetos_de_custo</code>,
+                    <code>centro_de_planejamento</code> e <code>matricula</code> são strings com itens separados por
+                    vírgula.
                 </p>
             </div>
 
@@ -310,7 +317,8 @@
       "tipo_de_viagem": "DEDICADO",
       "centro_de_planejamento": "CENTRO 1, CENTRO 2",
       "placa_veiculo": "ABC1D23",
-      "modelo_veiculo": "HB20"
+      "modelo_veiculo": "HB20",
+      "matricula": "12345, 67890"
     }
   ],
   "count": 450,
@@ -405,7 +413,7 @@
             <div class="footer-section">
                 <h4>Informações</h4>
                 <p>Versão 1.0.0</p>
-                <p>Última atualização: Setembro 2026</p>
+                <p>Última atualização: Outubro 2026</p>
             </div>
         </div>
         <div class="footer-bottom">

@@ -172,8 +172,8 @@
             <p>
                 Cada item em <code>data</code> contém os campos de negócio com nomes em <strong>português</strong>
                 (com acentos e snake_case), <strong>idênticos</strong> aos cabeçalhos da exportação XLSX equivalente,
-                mais o identificador interno <code>_id_atendimento</code>. Isso facilita comparar os dois formatos
-                e migrar relatórios.
+                mais o identificador interno <code>_id_atendimento</code> e o campo <code>matricula</code>
+                (exclusivo do JSON). Isso facilita comparar os dois formatos e migrar relatórios.
             </p>
 
             <h3>4.1 Identificação</h3>
@@ -294,6 +294,13 @@
                         <td>12</td>
                         <td><code>matricula_passageiros</code></td>
                         <td>Matrículas agregadas</td>
+                    </tr>
+                    <tr>
+                        <td>—</td>
+                        <td><code>matricula</code></td>
+                        <td>Mesmo valor de <code>matricula_passageiros</code>, exposto com o nome padronizado usado
+                            em <code>/jobs/partners/promptness</code> e <code>/csats/promptness</code>. Não existe na
+                            exportação XLSX</td>
                     </tr>
                     <tr>
                         <td>13</td>
@@ -866,6 +873,7 @@
       "hora_fim_realizada": "10:08",
       "nome_passageiros": "MARIA SANTOS",
       "matricula_passageiros": "12345",
+      "matricula": "12345",
       "cargo_passageiros": "ANALISTA",
       "gerências setorial_passageiros": "GERÊNCIA DE TI",
       "telefone_passageiros": "+5522999990000",
@@ -1063,7 +1071,7 @@
             <div class="footer-section">
                 <h4>Informações</h4>
                 <p>Versão 1.0.0</p>
-                <p>Última atualização: Setembro 2026</p>
+                <p>Última atualização: Outubro 2026</p>
             </div>
         </div>
         <div class="footer-bottom">
